@@ -1318,7 +1318,7 @@ function render(){
   app.innerHTML=state.view==='walk'?viewWalk():state.view==='card'?viewCard():state.view==='trends'?viewTrends():state.view==='strains'?viewStrains():state.view==='strain'?viewStrain():state.view==='guide'?viewGuide():state.view==='pest'?viewPest():state.view==='sprays'?viewSprays():state.view==='sprayform'?viewSprayForm():state.view==='alerts'?viewAlerts():state.view==='plantings'?viewPlantings():state.view==='plantform'?viewPlantForm():state.view==='settings'?viewSettings():viewHome();
   onDataRendered();
 }
-function go(view){state.view=view;state.confirmDel=false;render();window.scrollTo(0,0)}
+function go(view){state.view=view;state.confirmDel=false;render();window.scrollTo(0,0);armBack()}
 
 /* CSV */
 function csvRows(list){
@@ -1458,8 +1458,21 @@ document.addEventListener('input',e=>{
 window.addEventListener('online',()=>{flushPending();updateSync()});
 window.addEventListener('offline',updateSync);
 
+
+/* Android back button: step back inside the app; on the home screen, a second press closes it */
+let backArmed=false;
+function armBack(){if(backArmed)return;try{history.pushState({zs:1},'');backArmed=true}catch(e){}}
+function appBack(){
+  if(locked)return true;
+  const cancel=[['confirmDel',false],['sprayConfirmDel',false],['plantConfirmDel',false],['harvestConfirm',null],['restore',null],['pinForm',false]];
+  for(const [k,v] of cancel){if(state[k]){state[k]=v;render();return true}}
+  if(state.view==='pest'&&state.guideFrom){const g=document.querySelector('[data-act=guideback]');if(g){g.click();return true}}
+  const bk=document.querySelector('#topbar .back');if(bk){bk.click();return true}
+  return false}
+window.addEventListener('popstate',()=>{backArmed=false;if(appBack()){armBack();return}toast('Press back again to close Zone Scout')});
 /* boot */
 loadPrefs();render();
+armBack();
 document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='pin_in'&&e.key==='Enter')tryUnlock()});
 function flushNow(){Object.keys(timers).forEach(k=>clearTimeout(timers[k]));flushPending()}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){flushNow();hiddenAt=Date.now()}else{if(pinRec&&!locked&&hiddenAt&&Date.now()-hiddenAt>60000)lockNow();notifyDue()}});
