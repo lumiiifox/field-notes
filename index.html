@@ -288,6 +288,27 @@ label.btn{cursor:pointer}
 .pc-t b{font-family:var(--display);font-weight:700;font-size:19px}
 .pc-t small{color:var(--muted);font-size:13px}
 .pc-l{font-size:13px;color:var(--purple);font-weight:700}
+.alerts{margin-top:14px;background:color-mix(in srgb,var(--sticky) 20%,var(--surface));border:2px solid color-mix(in srgb,var(--sticky) 60%,var(--line));border-radius:20px;padding:12px 14px}
+.al-hd{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.al-hd b{flex:1;font-family:var(--display);font-weight:600;font-size:16px}
+.al-hd svg{width:24px;height:24px;flex:none}
+.al-row{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:8px 12px;margin-top:6px;color:inherit}
+.al-row.due{border-color:var(--bad)}
+.al-z{font-family:var(--mono);color:var(--purple);min-width:44px}
+.al-t{display:flex;flex-direction:column;font-size:14px;min-width:0}
+.al-t small{color:var(--muted);font-size:12px}
+.al-row.due small{color:var(--bad);font-weight:700}
+.al-card{background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:12px 14px;box-shadow:var(--shadow)}
+.al-card.due{border-color:var(--bad)}
+.al-top{display:flex;gap:12px;align-items:flex-start}
+.al-art{width:78px;flex:none;background:var(--sunk);border-radius:12px;padding:2px}
+.al-when{font-weight:700;color:var(--purple);font-size:14px;margin-top:4px}
+.al-card.due .al-when{color:var(--bad)}
+.al-card .row .btn{min-height:42px;padding:0 14px;font-size:15px}
+.ri-row{display:grid;grid-template-columns:1fr 76px auto;gap:10px;align-items:center;padding:6px 0;border-bottom:2px dashed var(--line)}
+.ri-row:last-child{border-bottom:0}
+.ri-row label{font-weight:700;font-size:14px}
+.ri-row input{min-height:42px;border:2px solid var(--line);border-radius:12px;background:var(--bg);text-align:center;font-family:var(--mono);font-size:16px;width:100%}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -396,7 +417,7 @@ let walks={};
 let pending=new Set();
 const timers={}, inflight={}, again={};
 let firstServerSnap=true;
-let strainNotes={}, zoneMap={}, sprays={}, products=[], plantings={};
+let strainNotes={}, zoneMap={}, sprays={}, products=[], plantings={}, alertCfg={dismissed:{},snooze:{},intervals:{}};
 const docPending={}, docVer={};
 const state={view:'home',walkId:null,card:null,metric:'cardTotal',trendZone:null,confirmDel:false,startZone:ZONE_MIN,startDate:today()};
 
@@ -445,7 +466,7 @@ async function push(id){
 }
 function flushPending(){[...pending].forEach(id=>push(id));Object.keys(docPending).forEach(p=>pushDoc(p))}
 function saveDoc(path){docPending[path]=true;docVer[path]=(docVer[path]||0)+1;saveLocal();clearTimeout(timers[path]);timers[path]=setTimeout(()=>pushDoc(path),250);updateSync()}
-function docBody(path){if(path.startsWith('plantings/')){const x=plantings[path.slice(10)];return x?clone(x):null}if(path==='config/products')return{list:products,updatedAt:Date.now()};if(path.startsWith('sprays/')){const x=sprays[path.slice(7)];return x?clone(x):null}if(path==='config/zones')return{map:zoneMap,updatedAt:Date.now()};return{notes:strainNotes[path.split('/')[1]]||'',updatedAt:Date.now()}}
+function docBody(path){if(path==='config/alerts')return Object.assign(clone(alertCfg),{updatedAt:Date.now()});if(path.startsWith('plantings/')){const x=plantings[path.slice(10)];return x?clone(x):null}if(path==='config/products')return{list:products,updatedAt:Date.now()};if(path.startsWith('sprays/')){const x=sprays[path.slice(7)];return x?clone(x):null}if(path==='config/zones')return{map:zoneMap,updatedAt:Date.now()};return{notes:strainNotes[path.split('/')[1]]||'',updatedAt:Date.now()}}
 async function pushDoc(path){
   if(!db){updateSync();return}
   if(inflight[path]){again[path]=true;return}
@@ -481,6 +502,7 @@ function renderTop(){
   else if(state.view==='settings')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Backup &amp; lock</div>';
   else if(state.view==='plantings')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Plantings</div>';
   else if(state.view==='plantform')left='<button class="back" data-act="plantings" aria-label="Back to plantings">‹</button><div class="crumb">'+(state.plantId?'Edit planting':'Log a planting')+'</div>';
+  else if(state.view==='alerts')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Rechecks</div>';
   else if(state.view==='sprays')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Spray log</div>';
   else if(state.view==='sprayform')left='<button class="back" data-act="sprays" aria-label="Back to spray log">‹</button><div class="crumb">'+(state.sprayId?'Edit spray':'Log a spray')+'</div>';
   else if(state.view==='guide')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Pest guide</div>';
@@ -491,7 +513,7 @@ function renderTop(){
 
 function viewHome(){
   const list=Object.entries(walks).filter(([,w])=>w).sort((a,b)=>(b[1].date+b[1].zone).localeCompare(a[1].date+a[1].zone)||b[1].zone-a[1].zone);
-  let h=bannerSvg()+reiBox(activeREIs())+'<h1 style="margin-top:8px">Start a walk</h1><p class="sub">'+housesFor(state.startZone)+' houses · 5 cards per house · '+plantsFor(state.startZone)+' plants per card in '+areaOf(state.startZone).n+'. Picking a zone and date you already started resumes it.</p>';
+  let h=bannerSvg()+reiBox(activeREIs())+alertsPanel()+'<h1 style="margin-top:8px">Start a walk</h1><p class="sub">'+housesFor(state.startZone)+' houses · 5 cards per house · '+plantsFor(state.startZone)+' plants per card in '+areaOf(state.startZone).n+'. Picking a zone and date you already started resumes it.</p>';
   const ar=areaOf(state.startZone);
   h+='<div class="panel"><div class="areas" role="group" aria-label="Area">'+AREAS.map(a=>'<button class="'+(a.k===ar.k?'on':'')+'" data-act="area" data-k="'+a.k+'" aria-pressed="'+(a.k===ar.k)+'">'+a.n+'<small>'+a.zones.length+' zone'+(a.zones.length===1?'':'s')+'</small></button>').join('')+'</div><div class="row" style="margin-top:12px"><div class="field"><label for="sz">Zone</label><select id="sz">'+ar.zones.map(z=>'<option value="'+z+'"'+(z===state.startZone?' selected':'')+'>Zone '+z+'</option>').join('')+'</select></div><div class="field"><label for="sd">Date</label><input id="sd" type="date" value="'+state.startDate+'"></div></div><div style="margin-top:12px"><button class="btn primary block" data-act="start">Start or resume walk</button></div></div>';
   h+='<h2>Walks</h2>';
@@ -499,7 +521,7 @@ function viewHome(){
   else{AREAS.concat([{k:'other',n:'Other'}]).forEach(a=>{const rows=list.filter(([,w])=>areaOf(w.zone).k===a.k);if(!rows.length)return;
     h+='<div class="area-hd '+a.k+'">'+a.n+'</div><div class="list">';rows.slice(0,30).forEach(([id,w])=>{const p=walkProgress(w),tt=walkTotals(w);const pct=Math.round(p.plants/zoneTotal(w.zone)*100);
     h+='<button class="walk" data-act="open" data-id="'+esc(id)+'"><span class="z">Z'+w.zone+'</span><span class="d">'+esc(fmtDate(w.date))+'</span><span class="pct">'+pct+'%</span><span class="m">'+(strainOf(w.strain)?esc(strainOf(w.strain).n)+' · ':'')+p.cards+'/'+cardsTotal(w.zone)+' cards · '+tt.catches+' caught · '+tt.findings+' plants flagged'+(pending.has(id)?' · unsaved':'')+'</span></button>'});h+='</div>'})}
-  h+='<div class="home-links"><button class="btn sticky" data-act="guidehome" >Pest guide</button><button class="btn sprayb" data-act="sprays">Spray log</button><button class="btn plantb" data-act="plantings">Plantings</button><button class="btn" data-act="strains">'+leafSvg()+'Cultivars</button><button class="btn" data-act="trends" style="grid-column:1/-1"'+(list.length?'':' disabled')+'>Trends</button></div>';
+  h+='<div class="home-links"><button class="btn sticky" data-act="guidehome" >Pest guide</button><button class="btn sprayb" data-act="sprays">Spray log</button><button class="btn plantb" data-act="plantings">Plantings</button><button class="btn" data-act="strains">'+leafSvg()+'Cultivars</button><button class="btn" data-act="trends"'+(list.length?'':' disabled')+'>Trends</button><button class="btn" data-act="alerts">Rechecks</button></div>';
   const nData=Object.values(walks).filter(Boolean).length+Object.values(sprays).filter(Boolean).length;
   if(nData&&(!prefs.lastBackup||Date.now()-prefs.lastBackup>7*864e5))h+='<div class="rule" style="margin-top:14px"><b>'+(prefs.lastBackup?'Last backup was '+Math.floor((Date.now()-prefs.lastBackup)/864e5)+' days ago.':'No backup yet.')+'</b> Your records live only on this phone. <button class="linkish" data-act="backup">Save a backup now</button></div>';
   h+='<div style="margin-top:10px"><button class="btn ghost block" data-act="settings">Backup &amp; lock</button></div>';
@@ -514,6 +536,7 @@ function viewWalk(){
   const st=strainOf(w.strain);
   h+='<div class="strain-pick"><label for="wstrain">Cultivar</label>'+strainSelect('wstrain',w.strain||'')+'</div>';
   if(st&&st.watch.length)h+='<div class="watch"><b>Watch for in '+esc(st.n)+':</b> '+st.watch.map(x=>esc(itemName(x.i))).join(', ')+'. <button class="linkish" data-act="strain" data-k="'+st.k+'">Details</button></div>';
+  {const za=computeAlerts().filter(a=>a.zone===w.zone&&a.date<w.date);if(za.length)h+='<div class="watch"><b>Rechecks for this zone:</b>'+za.map(a=>'<div style="margin-top:4px">'+esc(itemName(a.k))+' ('+SEV[a.sev]+', '+esc(fmtShort(a.date))+') on '+[...new Set(a.locs.map(l=>l.split(' ')[0]))].map(ck=>'<button class="linkish" data-act="card" data-k="'+ck+'">'+ck.replace('C',' C')+'</button>').join(' ')+'</div>').join('')+'</div>'}
   {const po=plantOn(w.zone,w.date);if(po){const p=po[1];h+='<div class="last-spray">'+sproutSvg()+'<span><b>'+esc((strainOf(p.cultivar)||{n:p.cultivar}).n)+'</b> in Zone '+w.zone+': day '+(dayDiff(p.planted,w.date)+1)+' since planting'+(p.flip&&p.flip<=w.date?', day '+(dayDiff(p.flip,w.date)+1)+' of flower':'')+'</span><button class="linkish" data-act="plantopen" data-id="'+esc(po[0])+'">Open</button></div>'}}
   h+=reiBox(zoneREI(w.zone));
   const ls=lastSprayInZone(w.zone,w.date);
@@ -542,6 +565,7 @@ function viewCard(){
   const w=walks[state.walkId];if(!w)return viewHome();
   const cd=getCard(w,state.card);
   let h='<div class="row" style="margin-top:18px;justify-content:space-between"><span class="card-tag">Sticky card '+state.card.replace('H','H').replace('C',' · C')+'</span><span class="note">'+(cd.ce?'Counts entered':'Counts not entered')+'</span></div>';
+  {const pf=prevCardFindings(w,state.card);if(pf&&pf.hits.length)h+='<div class="watch" style="margin-top:12px"><b>Last walk on this card ('+esc(fmtShort(pf.date))+'):</b> '+pf.hits.map(esc).join('; ')+'</div>'}
   h+='<div class="card-vis">'+stickySvg(cd)+'<div class="legend">'+CARD_ITEMS.map(i=>'<span><i style="background:'+CATCH_COL[i.k]+'"></i>'+esc(i.n)+' · '+(+cd.c?.[i.k]||0)+'</span>').join('')+'</div></div>';
   h+='<h2>Card catches</h2><div class="panel counts">'+CARD_ITEMS.map(i=>'<div class="count"><div class="nm">'+esc(i.n)+infoBtn('card',i.k)+(i.h?'<small>'+esc(i.h)+'</small>':'')+'</div>'+stepper('c_'+i.k,+cd.c?.[i.k]||0,'step',i.k)+'</div>').join('')+'</div>';
   h+='<div style="margin-top:10px"><button class="btn sticky block" data-act="nocatch">'+(cd.ce&&cardTotal(cd)===0?'✓ No catches recorded':'No catches on this card')+'</button></div>';
@@ -1042,8 +1066,8 @@ const IDB={h:null,
   clearData(){return new Promise((res,rej)=>{const t=IDB.h.transaction('kv','readwrite');const s=t.objectStore('kv');const c=s.openCursor();c.onsuccess=()=>{const x=c.result;if(x){if(!String(x.key).startsWith('meta/'))x.delete();x.continue()}};t.oncomplete=res;t.onerror=()=>rej(t.error)})}
 };
 const localDb={doc(path){return{set:v=>IDB.put(path,v),delete:()=>IDB.del(path)}}};
-function applyAll(all){walks={};sprays={};plantings={};strainNotes={};zoneMap={};products=[];
-  Object.entries(all).forEach(([k,v])=>{if(k.startsWith('walks/'))walks[k.slice(6)]=v;else if(k.startsWith('sprays/'))sprays[k.slice(7)]=v;else if(k.startsWith('plantings/'))plantings[k.slice(10)]=v;else if(k.startsWith('strains/'))strainNotes[k.slice(8)]=(v&&v.notes)||'';else if(k==='config/zones')zoneMap=(v&&v.map)||{};else if(k==='config/products')products=(v&&v.list)||[]})}
+function applyAll(all){walks={};sprays={};plantings={};alertCfg={dismissed:{},snooze:{},intervals:{}};strainNotes={};zoneMap={};products=[];
+  Object.entries(all).forEach(([k,v])=>{if(k.startsWith('walks/'))walks[k.slice(6)]=v;else if(k.startsWith('sprays/'))sprays[k.slice(7)]=v;else if(k.startsWith('plantings/'))plantings[k.slice(10)]=v;else if(k.startsWith('strains/'))strainNotes[k.slice(8)]=(v&&v.notes)||'';else if(k==='config/zones')zoneMap=(v&&v.map)||{};else if(k==='config/products')products=(v&&v.list)||[];else if(k==='config/alerts')alertCfg=Object.assign({dismissed:{},snooze:{},intervals:{}},v||{})})}
 
 /* file saving: share sheet on phones, download elsewhere */
 const fileSaver={async save({filename,data,type}){
@@ -1053,7 +1077,7 @@ const fileSaver={async save({filename,data,type}){
   const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);return{status:'saved'}}};
 
 /* backup and restore */
-function backupPayload(){return JSON.stringify({app:'zone-scout',format:1,exportedAt:new Date().toISOString(),data:{walks,sprays,plantings,strainNotes,zoneMap,products}},null,1)}
+function backupPayload(){return JSON.stringify({app:'zone-scout',format:1,exportedAt:new Date().toISOString(),data:{walks,sprays,plantings,strainNotes,zoneMap,products,alertCfg}},null,1)}
 async function exportBackup(){const name='zone-scout-backup-'+today()+'.json';
   try{await fileSaver.save({filename:name,data:backupPayload(),type:'application/json'});prefs.lastBackup=Date.now();savePrefs();toast('Backup saved: '+name);render()}
   catch(e){if(e&&e.code==='declined')return;toast('Backup failed. Try again.')}}
@@ -1064,7 +1088,7 @@ async function doRestore(){const o=state.restore&&state.restore.o;if(!o)return;c
     for(const [id,s] of Object.entries(d.sprays||{}))if(s)await IDB.put('sprays/'+id,s);
     for(const [id,p] of Object.entries(d.plantings||{}))if(p)await IDB.put('plantings/'+id,p);
     for(const [k,n] of Object.entries(d.strainNotes||{}))if(n)await IDB.put('strains/'+k,{notes:n,updatedAt:Date.now()});
-    await IDB.put('config/zones',{map:d.zoneMap||{},updatedAt:Date.now()});await IDB.put('config/products',{list:d.products||[],updatedAt:Date.now()});
+    await IDB.put('config/zones',{map:d.zoneMap||{},updatedAt:Date.now()});await IDB.put('config/products',{list:d.products||[],updatedAt:Date.now()});await IDB.put('config/alerts',d.alertCfg||{dismissed:{},snooze:{},intervals:{}});
     applyAll(await IDB.all());state.restore=null;toast('Backup restored');go('home')}
   catch(e){toast('Restore failed. Nothing was changed on purpose; try again.')}}
 
@@ -1202,10 +1226,97 @@ async function exportPlantings(){
   const csv=rows.map(r=>r.map(v=>{const x=String(v==null?'':v);return /[",\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x}).join(',')).join('\n');const name='plantings_'+today()+'.csv';
   try{await downloads.save({filename:name,data:csv});toast('Exported '+name)}catch(e){if(e&&e.code==='declined')return;toast('Export failed. Try again in a moment.')}
 }
+/* ---------- recheck reminders ---------- */
+Object.assign(GSRC,{
+  aphid:['Pan et al. 2021, Insects: hemp aphid (Phorodon cannabis) life table','https://pmc.ncbi.nlm.nih.gov/articles/PMC8150316/'],
+  tssm:['Temperature effects on life table parameters of Tetranychus urticae (J. Agr. Sci. Tech.)','https://jast.modares.ac.ir/article_15234_3dcf9c448778a2c94e663093cadd91aa.pdf'],
+  thripsrm:['Western flower thrips population development, control group at 26 °C (PMC)','https://pmc.ncbi.nlm.nih.gov/articles/PMC6359431/'],
+  pmcuc:['PNW Handbooks: Cucumber powdery mildew','https://pnwhandbooks.org/plantdisease/host-disease/cucumber-cucumis-sativus-powdery-mildew'],
+  dmcuc:['Frontiers in Horticulture (2025): Pseudoperonospora cubensis review','https://www.frontiersin.org/journals/horticulture/articles/10.3389/fhort.2025.1636345/full']
+});
+const RECHECK=[
+  {k:'faph',d:2,src:'aphid',basis:'Cannabis aphid populations doubled every 1.95 days at 25 °C in lab tests on hemp.'},
+  {k:'raph',d:2,src:'aphid',basis:'No published rate for rice root aphid, so this borrows the cannabis aphid doubling time (about 2 days at 25 °C) as a cautious stand-in.'},
+  {k:'tssm',d:4,src:'tssm',basis:'Two-spotted spider mite populations doubled every 4.7 days at 25 °C and 3.2 days at 27 °C in lab tests (on peach).'},
+  {k:'thr',d:4,src:'thripsrm',basis:'Western flower thrips populations doubled every 4.5 days at 26 °C in lab tests (on rose).'},
+  {k:'wf',d:7,src:'umasswf',basis:'No doubling time found. Greenhouse whitefly takes 14–40 days from egg to adult, so a weekly recheck catches the next generation early.'},
+  {k:'lm',d:7,src:'uconnlm',basis:'No doubling time found. A leaf miner generation takes about 14 days at 30 °C and longer when cooler, so a weekly recheck finds new mines before the next generation.'},
+  {k:'pm',d:3,src:'pmcuc',basis:'Powdery mildew colonies become visible 3–7 days after infection and then release new spores (cucumber data), so a 3-day recheck catches the next round early.'},
+  {k:'dm',d:4,src:'dmcuc',basis:'Downy mildew (cucurbit data) starts sporulating 5–7 days after infection, so a 4-day recheck comes before the next round of spores.'},
+  {k:'bot',d:2,src:'bc',basis:'No published figure used. Bud rot starts inside the bud and spreads fast in humid rooms, so the recheck is kept short on purpose.'},
+  {k:'rrot',d:3,src:'bc',basis:'No published figure used. Root rot can move through a room quickly, so the recheck is kept short on purpose.'}
+];
+function recheckDays(k){const r=RECHECK.find(x=>x.k===k);const o=+((alertCfg.intervals||{})[k]);return o>0?o:(r?r.d:7)}
+function findingsIn(w,k){let sev=0;const locs=[];Object.entries(w.cards||{}).forEach(([ck,cd])=>{Object.entries(cd.p||{}).forEach(([pk,pl])=>{if(pl&&pl.s==='issue'){const v=+((pl.v||{})[k])||0;if(v>0){sev=Math.max(sev,v);locs.push(ck+' '+pk)}}})});return{sev,locs}}
+function coversLocs(w,locs){return [...new Set(locs.map(l=>l.split(' ')[0]))].every(ck=>cardDone((w.cards||{})[ck],plantsFor(w.zone)))}
+function computeAlerts(){
+  const out=[];const byZone={};const t=today();
+  Object.values(walks).forEach(w=>{if(w&&w.date)(byZone[w.zone]=byZone[w.zone]||[]).push(w)});
+  Object.entries(byZone).forEach(([z,ws])=>{ws.sort((a,b)=>a.date.localeCompare(b.date));
+    RECHECK.forEach(r=>{let F=null,cleared=false;
+      ws.forEach(w=>{const f=findingsIn(w,r.k);if(f.locs.length){F={w,sev:f.sev,locs:f.locs};cleared=false}else if(F&&w.date>F.w.date&&coversLocs(w,F.locs))cleared=true});
+      if(!F||cleared)return;
+      const key=z+'|'+r.k+'|'+F.w.date;if((alertCfg.dismissed||{})[key])return;
+      const base=recheckDays(r.k);const urgent=F.sev>=3;const days=urgent?Math.max(1,Math.ceil(base/2)):base;
+      const due=(alertCfg.snooze||{})[key]||addDays(F.w.date,days);
+      out.push({key,zone:+z,k:r.k,date:F.w.date,sev:F.sev,locs:F.locs,due,days,urgent,left:dayDiff(t,due)})})});
+  return out.sort((a,b)=>a.due.localeCompare(b.due)||b.sev-a.sev);
+}
+function whenText(a){const d=new Date(a.due+'T00:00');return a.left<0?'Overdue by '+(-a.left)+' day'+(a.left===-1?'':'s')+' (was due '+fmtDay(d)+')':a.left===0?'Recheck today':a.left===1?'Recheck tomorrow':'Recheck in '+a.left+' days · '+fmtDay(d)}
+const BELL='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6z" fill="var(--sticky)" stroke="var(--sticky-ink)" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="19.6" r="2" fill="var(--sticky-ink)"/></svg>';
+function alertRow(a){return '<button class="al-row'+(a.left<=0?' due':'')+'" data-act="alertopen" data-k="'+esc(a.key)+'"><span class="al-z">Z'+a.zone+'</span><span class="al-t"><b>'+esc(itemName(a.k))+' · '+SEV[a.sev]+'</b><small>'+esc(whenText(a))+'</small></span></button>'}
+function alertsPanel(){const al=computeAlerts();if(!al.length)return '';const due=al.filter(a=>a.left<=0);const show=(due.length?due:al).slice(0,4);
+  return '<div class="alerts"><div class="al-hd">'+BELL+'<b>'+(due.length?due.length+' recheck'+(due.length===1?'':'s')+' due':al.length+' upcoming recheck'+(al.length===1?'':'s'))+'</b><button class="linkish" data-act="alerts">See all</button></div>'+show.map(alertRow).join('')+'</div>'}
+function alertId(key){return 'al_'+key.replace(/[^a-z0-9]/gi,'_')}
+function alertCard(a){const g=guideOf(GUIDE_MAP.plant[a.k]);const cards=[...new Set(a.locs.map(l=>l.split(' ')[0]))];
+  return '<div class="al-card'+(a.left<=0?' due':'')+'" id="'+alertId(a.key)+'"><div class="al-top">'+(g?'<span class="al-art">'+artSvg(g.k)+'</span>':'')+'<div><b>Zone '+a.zone+' · '+esc(itemName(a.k))+'</b><div class="note">'+SEV[a.sev]+' on '+a.locs.length+' plant'+(a.locs.length===1?'':'s')+' on '+esc(fmtShort(a.date))+' ('+cards.map(c=>c.replace('C',' C')).join(', ')+')</div><div class="al-when">'+esc(whenText(a))+'</div></div></div>'
+   +(a.urgent?'<p class="note" style="margin:8px 0 0"><b style="color:var(--bad)">Widespread or heavy:</b> recheck set to half the usual interval. Treat now.</p>':'<p class="note" style="margin:8px 0 0">Set '+a.days+' day'+(a.days===1?'':'s')+' after the finding, when the population is expected to have grown.</p>')
+   +'<div class="row" style="margin-top:10px"><button class="btn primary" data-act="alertwalk" data-k="'+esc(a.key)+'">Walk Zone '+a.zone+'</button><button class="btn ghost" data-act="asnooze" data-k="'+esc(a.key)+'">Snooze 1 day</button><button class="btn ghost" data-act="adismiss" data-k="'+esc(a.key)+'">Dismiss</button></div></div>'}
+function viewAlerts(){const al=computeAlerts();
+  let h='<h1>Rechecks</h1><p class="sub">When you mark a pest or disease as Found on a plant, Zone Scout works out when that zone should be walked again from how fast it spreads.</p>';
+  h+=al.length?'<div class="list">'+al.map(alertCard).join('')+'</div>':'<div class="empty">'+leafSvg()+'<span>No open rechecks. A recheck appears when you flag something on a plant, and clears when a later walk finishes those cards without finding it again.</span></div>';
+  h+=notifyPanel();
+  h+='<h2>'+leafSvg()+'Recheck intervals</h2><p class="note" style="margin-bottom:8px">Days after a Trace or Scattered finding. Widespread or Heavy findings get half, at least 1 day. Type your own number to match your facility; clear it to go back to the default.</p><div class="panel">'+RECHECK.map(r=>'<div class="ri-row"><label for="ri_'+r.k+'">'+esc(itemName(r.k))+'</label><input id="ri_'+r.k+'" type="number" inputmode="numeric" min="1" max="30" data-ri="'+r.k+'" value="'+esc((alertCfg.intervals||{})[r.k]||'')+'" placeholder="'+r.d+'"><span class="note">days</span></div>').join('')+'</div>';
+  h+='<h2>Why these numbers</h2><ul class="grow">'+RECHECK.map(r=>'<li><b>'+esc(itemName(r.k))+', '+r.d+' days.</b> '+esc(r.basis)+'</li>').join('')+'</ul><p class="note" style="margin-top:10px">Lab rates were measured at steady temperatures near 25 °C. Cooler rooms usually slow pests down, so these dates lean early.</p>';
+  h+='<h2>Sources</h2><ul class="grow src">'+[...new Set(RECHECK.map(r=>r.src))].map(s=>{const x=GSRC[s];return '<li>'+(x[1]?'<a href="'+esc(x[1])+'" target="_blank" rel="noopener">'+esc(x[0])+'</a>':esc(x[0]))+'</li>'}).join('')+'</ul>';
+  return h}
+function prevCardFindings(w,ck){const prev=Object.values(walks).filter(x=>x&&x.zone===w.zone&&x.date<w.date).sort((a,b)=>b.date.localeCompare(a.date));
+  for(const x of prev){const cd=(x.cards||{})[ck];if(!cd)continue;const hits=[];Object.entries(cd.p||{}).forEach(([pk,pl])=>{if(pl&&pl.s==='issue')PLANT_ITEMS.forEach(i=>{const v=+((pl.v||{})[i.k])||0;if(v>0)hits.push(i.n+' ('+SEV[v]+') on '+pk)})});
+    if(hits.length||cardDone(cd,plantsFor(x.zone)))return{date:x.date,hits}}return null}
+function alertAction(a,b){
+  const al=computeAlerts().find(x=>x.key===b.dataset.k);
+  if(a==='alertopen'){go('alerts');setTimeout(()=>{const el=document.getElementById(alertId(b.dataset.k));if(el)el.scrollIntoView({block:'center'})},30);return}
+  if(!al)return;
+  if(a==='alertwalk'){const z=al.zone,d=today(),id=d+'_Z'+z;if(!walks[id]){walks[id]={zone:z,date:d,strain:((plantOn(z,d)||[])[1]||{}).cultivar||zoneMap[z]||null,createdAt:Date.now(),updatedAt:Date.now(),cards:{}};touch(id)}state.walkId=id;state.card=al.locs[0].split(' ')[0];return go('card')}
+  if(a==='asnooze'){alertCfg.snooze=alertCfg.snooze||{};alertCfg.snooze[al.key]=addDays(al.due>today()?al.due:today(),1);saveDoc('config/alerts');toast('Snoozed to '+fmtDay(new Date(alertCfg.snooze[al.key]+'T00:00')));return render()}
+  if(a==='adismiss'){alertCfg.dismissed=alertCfg.dismissed||{};alertCfg.dismissed[al.key]=true;saveDoc('config/alerts');toast('Dismissed. A new finding brings it back.');return render()}
+}
+/* ---------- phone reminders (installed app only) ---------- */
+function alertMsg(a){return{title:'Recheck Zone '+a.zone,body:itemName(a.k)+' ('+SEV[a.sev]+') was found on '+fmtShort(a.date)+'. '+(a.urgent?'It was widespread, so recheck and treat.':'The population may have doubled since.')}}
+async function publishAlertsForSW(){try{if(!IDB.h)return;const al=prefs.notify?computeAlerts().map(a=>Object.assign({key:a.key,due:a.due},alertMsg(a))):[];await IDB.put('meta/alerts',al)}catch(e){}}
+async function notifyDue(){try{if(!prefs.notify||!('Notification' in window)||Notification.permission!=='granted'||!IDB.h||!navigator.serviceWorker)return;const reg=await navigator.serviceWorker.getRegistration();if(!reg)return;
+  const sent=(await IDB.get('meta/notified'))||{};const t=today();let ch=false;
+  for(const a of computeAlerts()){const id=a.key+'@'+a.due;if(a.due<=t&&!sent[id]){const m=alertMsg(a);await reg.showNotification(m.title,{body:m.body,tag:a.key,icon:'icon-192.png',badge:'icon-192.png'});sent[id]=1;ch=true}}
+  if(ch)await IDB.put('meta/notified',sent)}catch(e){}}
+let _pa;function onDataRendered(){clearTimeout(_pa);_pa=setTimeout(publishAlertsForSW,700)}
+async function enableReminders(){
+  if(!('Notification' in window)){toast('This browser can’t show notifications.');return}
+  const p=await Notification.requestPermission();if(p!=='granted'){toast('Notifications are blocked. Allow them for Zone Scout in your phone settings.');render();return}
+  prefs.bgSync=false;try{const reg=await navigator.serviceWorker.ready;if(reg.periodicSync){let ok=true;try{const st=await navigator.permissions.query({name:'periodic-background-sync'});ok=st.state==='granted'}catch(e){}if(ok){await reg.periodicSync.register('zs-alerts',{minInterval:6*3600*1000});prefs.bgSync=true}}}catch(e){prefs.bgSync=false}
+  prefs.notify=true;savePrefs();await publishAlertsForSW();toast('Reminders on');notifyDue();render()}
+async function disableReminders(){prefs.notify=false;prefs.bgSync=false;savePrefs();try{const reg=await navigator.serviceWorker.ready;if(reg.periodicSync)await reg.periodicSync.unregister('zs-alerts')}catch(e){}await publishAlertsForSW();toast('Reminders off');render()}
+function notifyPanel(){const sup='Notification' in window;const perm=sup?Notification.permission:'unsupported';
+  let h='<h2>'+leafSvg()+'Phone reminders</h2><div class="panel">';
+  if(!sup)h+='<p class="note" style="margin:0">This browser can’t show notifications. Rechecks still show on the home screen.</p>';
+  else if(perm==='granted'&&prefs.notify)h+='<p class="note" style="margin-top:0">On. '+(prefs.bgSync?'Your phone checks for due rechecks in the background a few times a day, so a reminder can arrive some hours after it’s due. It also checks every time you open Zone Scout.':'Background checks aren’t available on this phone, so reminders appear when you open Zone Scout.')+' Reminders show the zone and pest on your lock screen.</p><button class="btn ghost" data-act="notifyoff">Turn off reminders</button>';
+  else if(perm==='denied')h+='<p class="note" style="margin:0">Notifications are blocked for Zone Scout. Allow them in your phone’s settings for the app, then come back here.</p>';
+  else h+='<p class="note" style="margin-top:0">Get a phone notification when a zone is due for a recheck.</p><button class="btn primary block" data-act="notifyon">Turn on reminders</button>';
+  return h+'</div>'}
 function render(){
   renderTop();
   const app=document.getElementById('app');
-  app.innerHTML=state.view==='walk'?viewWalk():state.view==='card'?viewCard():state.view==='trends'?viewTrends():state.view==='strains'?viewStrains():state.view==='strain'?viewStrain():state.view==='guide'?viewGuide():state.view==='pest'?viewPest():state.view==='sprays'?viewSprays():state.view==='sprayform'?viewSprayForm():state.view==='plantings'?viewPlantings():state.view==='plantform'?viewPlantForm():state.view==='settings'?viewSettings():viewHome();
+  app.innerHTML=state.view==='walk'?viewWalk():state.view==='card'?viewCard():state.view==='trends'?viewTrends():state.view==='strains'?viewStrains():state.view==='strain'?viewStrain():state.view==='guide'?viewGuide():state.view==='pest'?viewPest():state.view==='sprays'?viewSprays():state.view==='sprayform'?viewSprayForm():state.view==='alerts'?viewAlerts():state.view==='plantings'?viewPlantings():state.view==='plantform'?viewPlantForm():state.view==='settings'?viewSettings():viewHome();
+  onDataRendered();
 }
 function go(view){state.view=view;state.confirmDel=false;render();window.scrollTo(0,0)}
 
@@ -1232,6 +1343,10 @@ document.addEventListener('click',e=>{
   if(a==='trends')return go('trends');
   if(a==='strains'){state.copyText=null;return go('strains')}
   if(a==='guidehome'){state.guideFrom=null;return go('guide')}
+  if(a==='alerts')return go('alerts');
+  if(['alertopen','alertwalk','asnooze','adismiss'].includes(a))return alertAction(a,b);
+  if(a==='notifyon')return enableReminders();
+  if(a==='notifyoff')return disableReminders();
   if(a==='plantings'){state.harvestConfirm=null;return go('plantings')}
   if(a==='plantfilter'){state.plantFilter=b.dataset.k;return render()}
   if(a==='plantnew'){if(!(state.plantDraft&&!state.plantId)){const pre={};if(state.view==='walk'&&walks[state.walkId])pre.zone=walks[state.walkId].zone;if(state.view==='strain'&&state.strainKey)pre.cultivar=state.strainKey;state.plantDraft=newPlantDraft(pre)}state.plantId=null;state.plantConfirmDel=false;return go('plantform')}
@@ -1314,6 +1429,7 @@ function firstOpen(w){for(let h=1;h<=housesFor(w.zone);h++)for(let c=1;c<=CARDS;
 
 document.addEventListener('change',e=>{
   const t=e.target;
+  if(t.dataset.ri){render();return}
   if(t.dataset.pf){pfInput(t,true);return}
   if(t.id==='restore_in'&&t.files&&t.files[0]){readBackupFile(t.files[0]);t.value='';return}
   if(t.id==='sf_prod'&&state.sprayDraft){const d=state.sprayDraft;const p=products.find(x=>x.id===t.value);if(p){d.prodId=p.id;d.product={name:p.name,pcp:p.pcp||'',active:p.active||''};['rei','phi','rate'].forEach(k=>{if(p[k])d[k]=p[k]});if(p.method)d.method=p.method}else{d.prodId='';d.product={name:'',pcp:'',active:''}}render();return}
@@ -1333,6 +1449,7 @@ function sfInput(t){const d=state.sprayDraft;if(!d)return;const f=t.dataset.sf;c
   if(['rei','phi','date','time'].includes(f)){const el=document.getElementById('sf_calc');if(el)el.innerHTML=calcText(d)}}
 document.addEventListener('input',e=>{
   const t=e.target;
+  if(t.dataset.ri){alertCfg.intervals=alertCfg.intervals||{};const v=parseInt(t.value,10);if(v>0&&v<=60)alertCfg.intervals[t.dataset.ri]=v;else delete alertCfg.intervals[t.dataset.ri];saveDoc('config/alerts');return}
   if(t.dataset.pf){pfInput(t,false);return}
   if(t.dataset.sf){sfInput(t);return}
   if(t.dataset.inp==='snote'){strainNotes[t.dataset.k]=t.value.slice(0,4000);saveDoc('strains/'+t.dataset.k);return}
@@ -1345,14 +1462,16 @@ window.addEventListener('offline',updateSync);
 loadPrefs();render();
 document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='pin_in'&&e.key==='Enter')tryUnlock()});
 function flushNow(){Object.keys(timers).forEach(k=>clearTimeout(timers[k]));flushPending()}
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){flushNow();hiddenAt=Date.now()}else if(pinRec&&!locked&&hiddenAt&&Date.now()-hiddenAt>60000)lockNow()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){flushNow();hiddenAt=Date.now()}else{if(pinRec&&!locked&&hiddenAt&&Date.now()-hiddenAt>60000)lockNow();notifyDue()}});
 window.addEventListener('pagehide',flushNow);
 (async()=>{
   downloads=fileSaver;
   try{await IDB.open();applyAll(await IDB.all());pinRec=(await IDB.get('meta/pin'))||null;db=localDb;dbState='ready'}
   catch(e){dbState='error';toast('This phone blocked storage for Zone Scout, so entries can’t be saved. Private browsing must be off.')}
   if(pinRec)lockNow();
+  if(location.hash==='#alerts')state.view='alerts';
   render();
+  publishAlertsForSW().then(notifyDue);
   try{if(navigator.storage&&navigator.storage.persist){persisted=await navigator.storage.persisted();if(!persisted)persisted=await navigator.storage.persist();if(state.view==='settings')render()}}catch(e){}
   if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
 })();
