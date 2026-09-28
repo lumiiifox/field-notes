@@ -279,6 +279,15 @@ tr:last-child td{border-bottom:0}
 .lock-in details{text-align:left;font-size:14px;color:var(--muted)}
 .lock-in summary{cursor:pointer;margin:6px 0}
 label.btn{cursor:pointer}
+.btn.plantb{background:var(--leaf-soft);border-color:color-mix(in srgb,var(--green) 35%,var(--line));color:var(--green)}
+.plant-card{background:var(--surface);border:2px solid var(--line);border-radius:22px;padding:14px 16px;box-shadow:var(--shadow)}
+.pc-main{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:none;border:0;padding:0;color:inherit}
+.pc-main .sw{width:54px;height:54px;border-radius:18px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--hue) 20%,var(--surface));flex:none}
+.pc-main .bud{width:36px;height:44px}
+.pc-t{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pc-t b{font-family:var(--display);font-weight:700;font-size:19px}
+.pc-t small{color:var(--muted);font-size:13px}
+.pc-l{font-size:13px;color:var(--purple);font-weight:700}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -382,7 +391,7 @@ let walks={};
 let pending=new Set();
 const timers={}, inflight={}, again={};
 let firstServerSnap=true;
-let strainNotes={}, zoneMap={}, sprays={}, products=[];
+let strainNotes={}, zoneMap={}, sprays={}, products=[], plantings={};
 const docPending={}, docVer={};
 const state={view:'home',walkId:null,card:null,metric:'cardTotal',trendZone:null,confirmDel:false,startZone:ZONE_MIN,startDate:today()};
 
@@ -431,12 +440,12 @@ async function push(id){
 }
 function flushPending(){[...pending].forEach(id=>push(id));Object.keys(docPending).forEach(p=>pushDoc(p))}
 function saveDoc(path){docPending[path]=true;docVer[path]=(docVer[path]||0)+1;saveLocal();clearTimeout(timers[path]);timers[path]=setTimeout(()=>pushDoc(path),250);updateSync()}
-function docBody(path){if(path==='config/products')return{list:products,updatedAt:Date.now()};if(path.startsWith('sprays/')){const x=sprays[path.slice(7)];return x?clone(x):null}if(path==='config/zones')return{map:zoneMap,updatedAt:Date.now()};return{notes:strainNotes[path.split('/')[1]]||'',updatedAt:Date.now()}}
+function docBody(path){if(path.startsWith('plantings/')){const x=plantings[path.slice(10)];return x?clone(x):null}if(path==='config/products')return{list:products,updatedAt:Date.now()};if(path.startsWith('sprays/')){const x=sprays[path.slice(7)];return x?clone(x):null}if(path==='config/zones')return{map:zoneMap,updatedAt:Date.now()};return{notes:strainNotes[path.split('/')[1]]||'',updatedAt:Date.now()}}
 async function pushDoc(path){
   if(!db){updateSync();return}
   if(inflight[path]){again[path]=true;return}
   inflight[path]=true;const v=docVer[path];
-  try{const body=docBody(path);if(body===null)await db.doc(path).delete();else await db.doc(path).set(body);if(docVer[path]===v){delete docPending[path];if(body===null&&path.startsWith('sprays/'))delete sprays[path.slice(7)];saveLocal()}}
+  try{const body=docBody(path);if(body===null)await db.doc(path).delete();else await db.doc(path).set(body);if(docVer[path]===v){delete docPending[path];if(body===null&&path.startsWith('sprays/'))delete sprays[path.slice(7)];if(body===null&&path.startsWith('plantings/'))delete plantings[path.slice(10)];saveLocal()}}
   catch(e){if(e&&e.code==='invalid_argument')toast('You can view these notes but not change them.');else if(e&&e.code==='quota_exceeded')toast('Storage is full.');else setTimeout(()=>pushDoc(path),8000+Math.random()*4000)}
   finally{inflight[path]=false;if(again[path]){again[path]=false;pushDoc(path)}updateSync()}
 }
@@ -465,6 +474,8 @@ function renderTop(){
   else if(state.view==='strains')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Cultivars</div>';
   else if(state.view==='strain')left='<button class="back" data-act="strains" aria-label="All cultivars">‹</button><div class="crumb">'+esc((strainOf(state.strainKey)||{}).n||'Cultivar')+'</div>';
   else if(state.view==='settings')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Backup &amp; lock</div>';
+  else if(state.view==='plantings')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Plantings</div>';
+  else if(state.view==='plantform')left='<button class="back" data-act="plantings" aria-label="Back to plantings">‹</button><div class="crumb">'+(state.plantId?'Edit planting':'Log a planting')+'</div>';
   else if(state.view==='sprays')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Spray log</div>';
   else if(state.view==='sprayform')left='<button class="back" data-act="sprays" aria-label="Back to spray log">‹</button><div class="crumb">'+(state.sprayId?'Edit spray':'Log a spray')+'</div>';
   else if(state.view==='guide')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Pest guide</div>';
@@ -483,7 +494,7 @@ function viewHome(){
   else{AREAS.concat([{k:'other',n:'Other'}]).forEach(a=>{const rows=list.filter(([,w])=>areaOf(w.zone).k===a.k);if(!rows.length)return;
     h+='<div class="area-hd '+a.k+'">'+a.n+'</div><div class="list">';rows.slice(0,30).forEach(([id,w])=>{const p=walkProgress(w),tt=walkTotals(w);const pct=Math.round(p.plants/zoneTotal(w.zone)*100);
     h+='<button class="walk" data-act="open" data-id="'+esc(id)+'"><span class="z">Z'+w.zone+'</span><span class="d">'+esc(fmtDate(w.date))+'</span><span class="pct">'+pct+'%</span><span class="m">'+(strainOf(w.strain)?esc(strainOf(w.strain).n)+' · ':'')+p.cards+'/25 cards · '+tt.catches+' caught · '+tt.findings+' plants flagged'+(pending.has(id)?' · unsaved':'')+'</span></button>'});h+='</div>'})}
-  h+='<div class="home-links"><button class="btn sticky" data-act="guidehome" >Pest guide</button><button class="btn sprayb" data-act="sprays">Spray log</button><button class="btn" data-act="strains">'+leafSvg()+'Cultivars</button><button class="btn" data-act="trends"'+(list.length?'':' disabled')+'>Trends</button></div>';
+  h+='<div class="home-links"><button class="btn sticky" data-act="guidehome" >Pest guide</button><button class="btn sprayb" data-act="sprays">Spray log</button><button class="btn plantb" data-act="plantings">Plantings</button><button class="btn" data-act="strains">'+leafSvg()+'Cultivars</button><button class="btn" data-act="trends" style="grid-column:1/-1"'+(list.length?'':' disabled')+'>Trends</button></div>';
   const nData=Object.values(walks).filter(Boolean).length+Object.values(sprays).filter(Boolean).length;
   if(nData&&(!prefs.lastBackup||Date.now()-prefs.lastBackup>7*864e5))h+='<div class="rule" style="margin-top:14px"><b>'+(prefs.lastBackup?'Last backup was '+Math.floor((Date.now()-prefs.lastBackup)/864e5)+' days ago.':'No backup yet.')+'</b> Your records live only on this phone. <button class="linkish" data-act="backup">Save a backup now</button></div>';
   h+='<div style="margin-top:10px"><button class="btn ghost block" data-act="settings">Backup &amp; lock</button></div>';
@@ -498,6 +509,7 @@ function viewWalk(){
   const st=strainOf(w.strain);
   h+='<div class="strain-pick"><label for="wstrain">Cultivar</label>'+strainSelect('wstrain',w.strain||'')+'</div>';
   if(st&&st.watch.length)h+='<div class="watch"><b>Watch for in '+esc(st.n)+':</b> '+st.watch.map(x=>esc(itemName(x.i))).join(', ')+'. <button class="linkish" data-act="strain" data-k="'+st.k+'">Details</button></div>';
+  {const po=plantOn(w.zone,w.date);if(po){const p=po[1];h+='<div class="last-spray">'+sproutSvg()+'<span><b>'+esc((strainOf(p.cultivar)||{n:p.cultivar}).n)+'</b> in Zone '+w.zone+': day '+(dayDiff(p.planted,w.date)+1)+' since planting'+(p.flip&&p.flip<=w.date?', day '+(dayDiff(p.flip,w.date)+1)+' of flower':'')+'</span><button class="linkish" data-act="plantopen" data-id="'+esc(po[0])+'">Open</button></div>'}}
   h+=reiBox(zoneREI(w.zone));
   const ls=lastSprayInZone(w.zone,w.date);
   h+='<div class="last-spray">'+dropSvg(ls?ls[1].method:'Other')+'<span>'+(ls?'Last spray in Zone '+w.zone+': <b>'+esc(ls[1].product.name)+'</b>'+((ls[1].targets||[]).length?' for '+ls[1].targets.map(k=>esc(targetName(k))).join(', '):'')+', '+esc(daysBefore(ls[1].date,w.date)):'No sprays logged for Zone '+w.zone+' before this walk')+'</span><button class="linkish" data-act="'+(ls?'sprayopen':'spraynew')+'"'+(ls?' data-id="'+esc(ls[0])+'"':'')+'>'+(ls?'Open':'Log one')+'</button>'+(ls?'<button class="linkish" data-act="spraynew">Log spray</button>':'')+'</div>';
@@ -591,6 +603,11 @@ function viewStrain(){
     const top=PLANT_ITEMS.filter(i=>inc[i.k]>0).sort((a,b)=>inc[b.k]-inc[a.k]);
     h+='<p class="note" style="margin-bottom:8px">'+n+' walk'+(n===1?'':'s')+'. Card catches are averaged per walk.</p><div class="tbl-wrap"><table><thead><tr><th>Card insect</th><th>Avg per walk</th></tr></thead><tbody>'+CARD_ITEMS.map(i=>'<tr><td>'+esc(i.n)+'</td><td>'+(tots.reduce((a,t)=>a+t.t[i.k],0)/n).toFixed(1)+'</td></tr>').join('')+'</tbody></table></div>';
     h+='<div class="tbl-wrap" style="margin-top:10px"><table><thead><tr><th>Plant finding</th><th>Plants, all walks</th></tr></thead><tbody>'+(top.length?top.map(i=>'<tr><td>'+esc(i.n)+'</td><td>'+inc[i.k]+'</td></tr>').join(''):'<tr><td>No plant findings</td><td>0</td></tr>')+'</tbody></table></div>'}
+  {const ps=plantEntries().filter(([,p])=>p.cultivar===s.k).sort((a,b)=>b[1].planted.localeCompare(a[1].planted));
+   h+='<h2>'+leafSvg()+'Plantings</h2>';
+   if(!ps.length)h+='<p class="note">No plantings logged for '+esc(s.n)+' yet. <button class="linkish" data-act="plantnew">Log one</button></p>';
+   else{const fin=ps.filter(([,p])=>p.harvested&&areaOf(p.zone).k==='flower');const fl=fin.filter(([,p])=>p.flip).map(([,p])=>dayDiff(p.flip,p.harvested));
+     h+='<p class="note" style="margin-bottom:8px">'+ps.filter(([,p])=>!p.harvested).length+' growing now · '+fin.length+' harvested'+(fl.length?' · your average: '+Math.round(fl.reduce((x,y)=>x+y,0)/fl.length)+' days from flip to harvest (listed: '+esc(s.flower)+')':'')+'</p><div class="list">'+ps.slice(0,8).map(([id,p])=>plantRow(id,p)).join('')+'</div>'}}
   h+='<h2>'+leafSvg()+'Facility notes</h2><p class="note" style="margin-bottom:8px">What your cut actually does: real flowering days, stretch, feed quirks, what it attracts. Kept only on this phone.</p><textarea id="sn_'+s.k+'" data-inp="snote" data-k="'+s.k+'" rows="5" placeholder="e.g. Our cut finishes around day 63, stretches hard, thrips find it first in H2">'+esc(strainNotes[s.k]||'')+'</textarea>';
   h+='<div class="nav"><button class="btn" data-act="strains">All cultivars</button><button class="btn primary" data-act="copystrain">Copy strain card</button></div>';
   if(state.copyText)h+='<p class="note" style="margin-top:10px">Copying was blocked here. The text is selected below; copy it by hand.</p><textarea id="copybox" rows="8" readonly>'+esc(state.copyText)+'</textarea>';
@@ -1020,8 +1037,8 @@ const IDB={h:null,
   clearData(){return new Promise((res,rej)=>{const t=IDB.h.transaction('kv','readwrite');const s=t.objectStore('kv');const c=s.openCursor();c.onsuccess=()=>{const x=c.result;if(x){if(!String(x.key).startsWith('meta/'))x.delete();x.continue()}};t.oncomplete=res;t.onerror=()=>rej(t.error)})}
 };
 const localDb={doc(path){return{set:v=>IDB.put(path,v),delete:()=>IDB.del(path)}}};
-function applyAll(all){walks={};sprays={};strainNotes={};zoneMap={};products=[];
-  Object.entries(all).forEach(([k,v])=>{if(k.startsWith('walks/'))walks[k.slice(6)]=v;else if(k.startsWith('sprays/'))sprays[k.slice(7)]=v;else if(k.startsWith('strains/'))strainNotes[k.slice(8)]=(v&&v.notes)||'';else if(k==='config/zones')zoneMap=(v&&v.map)||{};else if(k==='config/products')products=(v&&v.list)||[]})}
+function applyAll(all){walks={};sprays={};plantings={};strainNotes={};zoneMap={};products=[];
+  Object.entries(all).forEach(([k,v])=>{if(k.startsWith('walks/'))walks[k.slice(6)]=v;else if(k.startsWith('sprays/'))sprays[k.slice(7)]=v;else if(k.startsWith('plantings/'))plantings[k.slice(10)]=v;else if(k.startsWith('strains/'))strainNotes[k.slice(8)]=(v&&v.notes)||'';else if(k==='config/zones')zoneMap=(v&&v.map)||{};else if(k==='config/products')products=(v&&v.list)||[]})}
 
 /* file saving: share sheet on phones, download elsewhere */
 const fileSaver={async save({filename,data,type}){
@@ -1031,7 +1048,7 @@ const fileSaver={async save({filename,data,type}){
   const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);return{status:'saved'}}};
 
 /* backup and restore */
-function backupPayload(){return JSON.stringify({app:'zone-scout',format:1,exportedAt:new Date().toISOString(),data:{walks,sprays,strainNotes,zoneMap,products}},null,1)}
+function backupPayload(){return JSON.stringify({app:'zone-scout',format:1,exportedAt:new Date().toISOString(),data:{walks,sprays,plantings,strainNotes,zoneMap,products}},null,1)}
 async function exportBackup(){const name='zone-scout-backup-'+today()+'.json';
   try{await fileSaver.save({filename:name,data:backupPayload(),type:'application/json'});prefs.lastBackup=Date.now();savePrefs();toast('Backup saved: '+name);render()}
   catch(e){if(e&&e.code==='declined')return;toast('Backup failed. Try again.')}}
@@ -1040,6 +1057,7 @@ async function doRestore(){const o=state.restore&&state.restore.o;if(!o)return;c
   try{await IDB.clearData();
     for(const [id,w] of Object.entries(d.walks||{}))if(w)await IDB.put('walks/'+id,w);
     for(const [id,s] of Object.entries(d.sprays||{}))if(s)await IDB.put('sprays/'+id,s);
+    for(const [id,p] of Object.entries(d.plantings||{}))if(p)await IDB.put('plantings/'+id,p);
     for(const [k,n] of Object.entries(d.strainNotes||{}))if(n)await IDB.put('strains/'+k,{notes:n,updatedAt:Date.now()});
     await IDB.put('config/zones',{map:d.zoneMap||{},updatedAt:Date.now()});await IDB.put('config/products',{list:d.products||[],updatedAt:Date.now()});
     applyAll(await IDB.all());state.restore=null;toast('Backup restored');go('home')}
@@ -1071,7 +1089,7 @@ function viewSettings(){
   let h='<h1>Backup &amp; lock</h1><p class="sub">Everything you log is stored only in Zone Scout on this phone. Nothing is uploaded anywhere.</p>';
   h+='<div class="stats"><div class="stat"><div class="n">'+nW+'</div><div class="l">Walks</div></div><div class="stat"><div class="n">'+nS+'</div><div class="l">Sprays</div></div><div class="stat"><div class="n" style="font-size:15px;padding-top:6px">'+(prefs.lastBackup?esc(new Date(prefs.lastBackup).toLocaleDateString(undefined,{month:'short',day:'numeric'})):'Never')+'</div><div class="l">Last backup</div></div></div>';
   h+='<h2>'+leafSvg()+'Backup</h2><div class="panel"><p class="note" style="margin-top:0">If this phone is lost, reset or the app is deleted, your records go with it. A backup is one file you can keep in Files, Drive or email to yourself.</p><button class="btn primary block" data-act="backup">Save a backup file</button><label class="btn block" for="restore_in" style="margin-top:10px">Restore from a backup file</label><input id="restore_in" type="file" accept=".json,application/json" hidden></div>';
-  if(state.restore){const d=state.restore.o.data;h+='<div class="confirm"><strong>Replace everything on this phone?</strong><span class="note">'+esc(state.restore.name)+' from '+esc(new Date(state.restore.o.exportedAt).toLocaleString())+': '+Object.values(d.walks||{}).filter(Boolean).length+' walks, '+Object.values(d.sprays||{}).filter(Boolean).length+' sprays. What’s on the phone now will be replaced.</span><div class="row"><button class="btn danger" data-act="restoreyes">Replace with backup</button><button class="btn ghost" data-act="restoreno">Cancel</button></div></div>'}
+  if(state.restore){const d=state.restore.o.data;h+='<div class="confirm"><strong>Replace everything on this phone?</strong><span class="note">'+esc(state.restore.name)+' from '+esc(new Date(state.restore.o.exportedAt).toLocaleString())+': '+Object.values(d.walks||{}).filter(Boolean).length+' walks, '+Object.values(d.sprays||{}).filter(Boolean).length+' sprays, '+Object.values(d.plantings||{}).filter(Boolean).length+' plantings. What’s on the phone now will be replaced.</span><div class="row"><button class="btn danger" data-act="restoreyes">Replace with backup</button><button class="btn ghost" data-act="restoreno">Cancel</button></div></div>'}
   h+='<h2>'+leafSvg()+'PIN lock</h2><div class="panel">';
   if(pinRec)h+='<p class="note" style="margin-top:0">On. Zone Scout asks for your PIN when it opens and after a minute in the background.</p><div class="row"><button class="btn" data-act="lock">Lock now</button><button class="btn ghost" data-act="pinform">Change PIN</button><button class="btn danger" data-act="pinremove">Remove PIN</button></div>';
   else h+='<p class="note" style="margin-top:0">Off. Add a PIN so someone holding your unlocked phone can’t open your records.</p>'+(state.pinForm?'':'<button class="btn primary block" data-act="pinform">Set a PIN</button>');
@@ -1080,10 +1098,109 @@ function viewSettings(){
   h+='<h2>'+leafSvg()+'Storage</h2><div class="panel"><p class="note" style="margin:0">'+(persisted===true?'This phone has marked Zone Scout’s storage as protected from automatic clean-up.':persisted===false?'The phone hasn’t granted protected storage. Installing Zone Scout to your home screen and backing up regularly keeps your data safe.':'Checking storage protection…')+'</p></div>';
   return h;
 }
+/* ---------- plantings ---------- */
+const END_LABEL={flower:'Harvested',veg:'Moved out',mother:'Retired'};
+function plantEntries(){return Object.entries(plantings).filter(([,p])=>p&&p.cultivar)}
+function dayDiff(a,b){const [y1,m1,d1]=a.split('-').map(Number),[y2,m2,d2]=b.split('-').map(Number);return Math.round((new Date(y2,m2-1,d2)-new Date(y1,m1-1,d1))/864e5)}
+function addDays(iso,n){const [y,m,d]=iso.split('-').map(Number);return isoDay(new Date(y,m-1,d+n))}
+function fmtDay(d){return d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}
+function activePlanting(z){return plantEntries().filter(([,p])=>!p.harvested&&p.zone===+z).sort((a,b)=>b[1].planted.localeCompare(a[1].planted))[0]||null}
+function plantOn(z,day){return plantEntries().filter(([,p])=>p.zone===+z&&p.planted<=day&&(!p.harvested||p.harvested>=day)).sort((a,b)=>b[1].planted.localeCompare(a[1].planted))[0]||null}
+function phiConflicts(z,day){const [y,m,d]=day.split('-').map(Number);const t=new Date(y,m-1,d);return sprayEntries().filter(([,s])=>s.zones.includes(+z)&&s.date<=day).map(([id,s])=>({id,s,until:phiUntil(s)})).filter(x=>x.until&&x.until>t).sort((a,b)=>b.until-a.until)}
+function listedDays(s){if(!s)return 0;let m=s.flower.match(/(\d+)\s*[–-]\s*(\d+)\s*days/);if(m)return +m[2];m=s.flower.match(/(\d+)\s*[–-]\s*(\d+)\s*weeks/);if(m)return +m[2]*7;return 0}
+function refreshZoneCultivar(z){const a=activePlanting(z);const cur=zoneMap[z]||'';
+  if(a){if(cur!==a[1].cultivar){zoneMap[z]=a[1].cultivar;saveDoc('config/zones')}}
+  else if(cur&&plantEntries().some(([,p])=>p.zone===+z&&p.cultivar===cur)){delete zoneMap[z];saveDoc('config/zones')}}
+function sproutSvg(){return '<svg class="ic" viewBox="0 0 44 44" aria-hidden="true"><path d="M12,40 L32,40" stroke="#C09A6A" stroke-width="3" stroke-linecap="round"/><path d="M22,40 L22,22" stroke="var(--green)" stroke-width="3" stroke-linecap="round"/><path d="M22,27 C12,27 7,19 7,12 C16,12 22,19 22,27Z" fill="var(--green)"/><path d="M22,23 C31,23 37,15 37,8 C28,8 22,15 22,23Z" fill="#7FD28C"/></svg>'}
+function growSvg(){
+  const leaf=(x,y,s)=>'<g transform="translate('+x+','+y+') scale('+s+')" fill="var(--green)">'+[[0,1],[30,.84],[-30,.84],[60,.66],[-60,.66],[100,.38],[-100,.38]].map(([a,k])=>'<path transform="rotate('+a+')" d="M0,0 Q'+(10*k)+','+(-24*k)+' 0,'+(-44*k)+' Q'+(-10*k)+','+(-24*k)+' 0,0Z"/>').join('')+'</g>';
+  const pot=x=>'<path d="M'+(x-16)+',96 L'+(x+16)+',96 L'+(x+12)+',114 L'+(x-12)+',114Z" fill="#D8D2C4" stroke="var(--line)" stroke-width="1.5"/>';
+  const arrow=x=>'<path d="M'+x+',70 L'+(x+34)+',70 M'+(x+26)+',63 L'+(x+34)+',70 L'+(x+26)+',77" stroke="var(--muted)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
+  const buds=[[280,34],[270,46],[290,48],[280,58],[264,62],[296,64]].map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="6.5" fill="color-mix(in srgb,var(--purple) 50%,#9FD27F)" stroke="var(--purple)" stroke-width="1.2"/>').join('')+[[284,32],[272,44],[294,46]].map(([x,y])=>'<path d="M'+x+','+y+' q3,-5 7,-2" stroke="#F0955A" stroke-width="1.5" fill="none" stroke-linecap="round"/>').join('');
+  return '<svg class="sprayer" viewBox="0 0 340 132" aria-hidden="true"><path d="M0,114 L340,114" stroke="var(--line)" stroke-width="3"/>'
+   +'<path d="M60,96 L60,86" stroke="var(--green)" stroke-width="2.5"/>'+leaf(60,88,.3)+pot(60)+arrow(96)
+   +'<path d="M170,96 L170,48" stroke="var(--green)" stroke-width="3"/>'+leaf(170,98,.9)+leaf(170,68,.55)+pot(170)+arrow(206)
+   +'<path d="M280,96 L280,40" stroke="var(--green)" stroke-width="3"/>'+leaf(280,100,.95)+leaf(280,76,.55)+buds+pot(280)
+   +[['Planted',60],['Veg',170],['Flower · harvest',280]].map(([t,x])=>'<text x="'+x+'" y="128" text-anchor="middle" font-size="10" font-family="Fredoka,system-ui,sans-serif" font-weight="600" fill="var(--muted)">'+t+'</text>').join('')+'</svg>'}
+
+function strainHue(k){const ix=STRAINS.findIndex(s=>s.k===k);return STRAIN_HUES[(ix<0?0:ix)%STRAIN_HUES.length]}
+function plantCard(id,p){
+  const st=strainOf(p.cultivar)||{n:p.cultivar};const hue=strainHue(p.cultivar);const ar=areaOf(p.zone);const t=today();const d=dayDiff(p.planted,t);
+  const lines=['Day '+(d+1)+' since planting'];
+  if(p.flip&&p.flip<=t)lines.push('day '+(dayDiff(p.flip,t)+1)+' of flower');
+  let bar='';if(p.expected){const tot=Math.max(1,dayDiff(p.planted,p.expected));const pct=Math.min(100,Math.max(0,d/tot*100));const left=dayDiff(t,p.expected);lines.push(left>0?left+' days to expected harvest':left===0?'expected harvest today':(-left)+' days past expected harvest');bar='<div class="bar" style="margin-top:10px"><span style="width:'+pct.toFixed(0)+'%"></span></div>'}
+  const pc=ar.k==='flower'?phiConflicts(p.zone,t):[];
+  let h='<div class="plant-card" style="--hue:'+hue+'"><button class="pc-main" data-act="plantopen" data-id="'+esc(id)+'"><span class="sw">'+budSvg(hue)+'</span><span class="pc-t"><b>'+esc(st.n)+'</b><small>'+ar.n+' · Zone '+p.zone+(p.houses&&p.houses.length?' · H'+p.houses.join(', H'):'')+(p.lot?' · Lot '+esc(p.lot):'')+'</small><span class="pc-l">'+lines.join(' · ')+'</span></span></button>'+bar;
+  if(pc.length)h+='<div style="margin-top:8px"><span class="tag bad" style="display:inline-block;line-height:1.5">Harvest not before '+esc(fmtDay(pc[0].until))+' · '+esc(pc[0].s.product.name)+' PHI</span></div>';
+  if(state.harvestConfirm===id)h+='<div class="confirm"><strong>The PHI hasn’t passed yet</strong><span class="note">'+pc.map(x=>esc(x.s.product.name)+' was applied in Zone '+p.zone+' on '+esc(fmtShort(x.s.date))+', so the label allows harvest from '+esc(fmtDay(x.until))+'.').join(' ')+'</span><div class="row"><button class="btn danger" data-act="plantharvestyes" data-id="'+esc(id)+'">Log harvest anyway</button><button class="btn ghost" data-act="plantharvestno">Cancel</button></div></div>';
+  else h+='<div style="margin-top:10px"><button class="btn plantb" data-act="plantharvest" data-id="'+esc(id)+'">Mark '+END_LABEL[ar.k].toLowerCase()+' today</button></div>';
+  return h+'</div>';
+}
+function plantRow(id,p){const st=strainOf(p.cultivar)||{n:p.cultivar};const ar=areaOf(p.zone);const end=p.harvested;const days=dayDiff(p.planted,end||today());
+  const t2='Zone '+p.zone+' · planted '+fmtShort(p.planted)+(end?' → '+END_LABEL[ar.k].toLowerCase()+' '+fmtShort(end):'')+' · '+days+' day'+(days===1?'':'s')+(p.flip&&end?' · '+dayDiff(p.flip,end)+' in flower':'');
+  return '<button class="spray" data-act="plantopen" data-id="'+esc(id)+'">'+sproutSvg()+'<span class="t1">'+esc(st.n)+'</span><span class="when">'+(end?esc(fmtShort(end)):'growing')+'</span><span class="t2">'+esc(t2)+'</span><span class="t3"><span class="tag">'+ar.n+'</span>'+(p.lot?'<span class="tag">Lot '+esc(p.lot)+'</span>':'')+(p.yieldG?'<span class="tag ok">'+esc(p.yieldG)+' g</span>':'')+'</span></button>'}
+
+function viewPlantings(){
+  const f=state.plantFilter||'all';
+  const all=plantEntries().filter(([,p])=>f==='all'||areaOf(p.zone).k===f);
+  const active=all.filter(([,p])=>!p.harvested).sort((a,b)=>a[1].zone-b[1].zone);
+  const done=all.filter(([,p])=>p.harvested).sort((a,b)=>b[1].harvested.localeCompare(a[1].harvested));
+  let h=growSvg()+'<h1 style="margin-top:6px">Plantings</h1><p class="sub">When each cultivar went into a zone, when it flipped to flower, and when it came out. The zone’s cultivar updates from here automatically.</p>';
+  h+='<button class="btn primary block" data-act="plantnew">'+(state.plantDraft&&!state.plantId?'Continue unsaved planting':'Log a planting')+'</button>';
+  h+='<div class="chips" role="group" aria-label="Filter" style="margin-top:14px">'+[['all','All'],...AREAS.map(a=>[a.k,a.n])].map(([k,n])=>'<button class="'+(k===f?'on':'')+'" data-act="plantfilter" data-k="'+k+'" aria-pressed="'+(k===f)+'">'+n+'</button>').join('')+'</div>';
+  h+='<h2>'+leafSvg()+'Growing now</h2>';
+  h+=active.length?'<div class="list">'+active.map(([id,p])=>plantCard(id,p)).join('')+'</div>':'<div class="empty">'+leafSvg()+'<span>Nothing logged as growing'+(f==='all'?'':' in '+esc(AREAS.find(a=>a.k===f).n))+'. Log a planting when a cultivar goes into a zone.</span></div>';
+  h+='<h2>'+leafSvg()+'Finished</h2>';
+  h+=done.length?'<div class="list">'+done.slice(0,60).map(([id,p])=>plantRow(id,p)).join('')+'</div>':'<p class="note">Harvested, moved-out and retired plantings show up here with their cycle length.</p>';
+  h+='<div class="nav"><button class="btn" data-act="home">Home</button><button class="btn" data-act="exportplantings"'+(plantEntries().length?'':' disabled')+'>Export CSV</button></div>';
+  return h;
+}
+
+function newPlantDraft(pre){return Object.assign({cultivar:'',zone:state.startZone||ZONES[0],houses:[],lot:'',planted:today(),flip:'',expected:'',harvested:'',yieldG:'',notes:''},pre||{})}
+function viewPlantForm(){
+  const d=state.plantDraft;if(!d)return viewPlantings();
+  const ar=areaOf(d.zone);const isF=ar.k==='flower';const st=strainOf(d.cultivar);
+  const inp=(id,f,val,lab,attrs)=>'<div class="field"><label for="'+id+'">'+lab+'</label><input id="'+id+'" data-pf="'+f+'" value="'+esc(val==null?'':val)+'" '+(attrs||'')+'></div>';
+  let h='<h1>'+(state.plantId?'Edit planting':'Log a planting')+'</h1><p class="sub">Fields marked * are needed to save.</p>';
+  h+='<h2>What and where *</h2><div class="panel"><div class="row"><div class="field"><label for="pf_cult">Cultivar *</label><select id="pf_cult" data-pf="cultivar"><option value="">Choose…</option>'+STRAINS.map(s=>'<option value="'+s.k+'"'+(s.k===d.cultivar?' selected':'')+'>'+esc(s.n)+'</option>').join('')+'</select></div><div class="field"><label for="pf_zone">Zone *</label><select id="pf_zone" data-pf="zone">'+AREAS.map(a=>'<optgroup label="'+a.n+'">'+a.zones.map(z=>'<option value="'+z+'"'+(z===+d.zone?' selected':'')+'>Zone '+z+'</option>').join('')+'</optgroup>').join('')+'</select></div></div>'
+    +'<div class="zchips-hd"><span>Houses</span></div><div class="zchips"><button class="'+(!d.houses.length?'on':'')+'" data-act="pfhouse" data-k="all" aria-pressed="'+(!d.houses.length)+'">All</button>'+[1,2,3,4,5].map(n=>{const on=d.houses.includes(n);return '<button class="'+(on?'on':'')+'" data-act="pfhouse" data-k="'+n+'" aria-pressed="'+on+'">H'+n+'</button>'}).join('')+'</div>'
+    +'<div style="margin-top:12px">'+inp('pf_lot','lot',d.lot,'Lot / batch ID','autocomplete="off"')+'</div></div>';
+  h+='<h2>Dates</h2><div class="panel"><div class="row">'+inp('pf_planted','planted',d.planted,'Planted *','type="date"')+(isF?inp('pf_flip','flip',d.flip,'Flipped to flower','type="date"'):'')+'</div><div class="row" style="margin-top:10px">'+(isF?inp('pf_exp','expected',d.expected,'Expected harvest','type="date"'):'')+inp('pf_end','harvested',d.harvested,END_LABEL[ar.k],'type="date"')+'</div>';
+  if(isF&&st){const n=listedDays(st);h+='<p class="note" style="margin-top:10px">Listed flowering time for '+esc(st.n)+': '+esc(st.flower)+'.'+(n&&d.flip?' <button class="linkish" data-act="pfestimate">Set expected harvest to '+n+' days after flip</button>':'')+'</p>'}
+  if(!isF)h+='<p class="note" style="margin-top:10px">'+(ar.k==='veg'?'Use Moved out for the day these plants left the veg zone.':'Use Retired for the day these mothers were taken out.')+'</p>';
+  if(isF&&d.harvested){const pc=phiConflicts(d.zone,d.harvested);if(pc.length)h+='<div class="rei-box">'+NOENTRY+'<div><b>Harvest date is inside a PHI</b>'+pc.map(x=>'<div>'+esc(x.s.product.name)+' on '+esc(fmtShort(x.s.date))+': harvest not before '+esc(fmtDay(x.until))+'</div>').join('')+'</div></div>'}
+  h+='</div>';
+  if(isF)h+='<h2>Harvest</h2><div class="panel">'+inp('pf_yield','yieldG',d.yieldG,'Harvest weight (g)','type="number" inputmode="decimal" min="0" step="any"')+'</div>';
+  h+='<h2>Notes</h2><textarea id="pf_notes" data-pf="notes" rows="3" placeholder="Clone source, plant count, anything unusual about this run">'+esc(d.notes)+'</textarea>';
+  h+='<div class="nav"><button class="btn" data-act="plantdiscard">'+(state.plantId?'Cancel':'Discard')+'</button><button class="btn primary" data-act="plantsave">'+(state.plantId?'Save changes':'Save planting')+'</button></div>';
+  if(state.plantId)h+='<div style="margin-top:24px">'+(state.plantConfirmDel?'<div class="confirm"><strong>Delete this planting?</strong><span class="note">It is removed for good, including from exports.</span><div class="row"><button class="btn danger" data-act="plantdelyes">Delete planting</button><button class="btn ghost" data-act="plantdelno">Keep it</button></div></div>':'<button class="btn ghost block" data-act="plantdel" style="color:var(--muted)">Delete this planting</button>')+'</div>';
+  return h;
+}
+function pfInput(t,changed){const d=state.plantDraft;if(!d)return;const f=t.dataset.pf;let v=t.value;if(f==='zone')v=+v;d[f]=v;
+  if(changed&&['zone','cultivar','harvested','flip','planted'].includes(f))render()}
+function savePlant(){
+  const d=state.plantDraft;if(!d)return;const miss=[];if(!d.cultivar)miss.push('a cultivar');if(!d.zone)miss.push('a zone');if(!d.planted)miss.push('the planted date');
+  if(miss.length){toast('Add '+miss.join(', ')+' to save.');return}
+  const isF=areaOf(d.zone).k==='flower';
+  if(isF&&d.flip&&d.flip<d.planted){toast('The flip date is before the planted date.');return}
+  if(d.harvested&&d.harvested<d.planted){toast('The '+END_LABEL[areaOf(d.zone).k].toLowerCase()+' date is before the planted date.');return}
+  const id=state.plantId||('g'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));const prev=plantings[id];const T=v=>String(v==null?'':v).trim();
+  const rec={cultivar:d.cultivar,zone:+d.zone,houses:d.houses.slice().sort((a,b)=>a-b),lot:T(d.lot),planted:d.planted,flip:isF?T(d.flip):'',expected:isF?T(d.expected):'',harvested:T(d.harvested),yieldG:isF?T(d.yieldG):'',notes:String(d.notes||'').slice(0,2000),createdAt:(prev&&prev.createdAt)||Date.now(),updatedAt:Date.now()};
+  plantings[id]=rec;saveDoc('plantings/'+id);refreshZoneCultivar(rec.zone);if(prev&&prev.zone!==rec.zone)refreshZoneCultivar(prev.zone);
+  state.plantDraft=null;state.plantId=null;toast(prev?'Planting updated':'Planting logged');go('plantings');
+}
+async function exportPlantings(){
+  if(!downloads){toast('File export is not available in this view.');return}
+  const list=plantEntries().sort((a,b)=>a[1].planted.localeCompare(b[1].planted));
+  const rows=[['cultivar','area','zone','houses','lot_batch','planted','flipped','expected_harvest','end_date','end_type','days_total','days_in_flower','weight_g','notes']];
+  list.forEach(([,p])=>{const ar=areaOf(p.zone);rows.push([(strainOf(p.cultivar)||{n:p.cultivar}).n,ar.n,p.zone,p.houses&&p.houses.length?p.houses.map(x=>'H'+x).join('; '):'All',p.lot,p.planted,p.flip,p.expected,p.harvested,p.harvested?END_LABEL[ar.k]:'',p.harvested?dayDiff(p.planted,p.harvested):'',p.flip&&p.harvested?dayDiff(p.flip,p.harvested):'',p.yieldG,p.notes])});
+  const csv=rows.map(r=>r.map(v=>{const x=String(v==null?'':v);return /[",\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x}).join(',')).join('\n');const name='plantings_'+today()+'.csv';
+  try{await downloads.save({filename:name,data:csv});toast('Exported '+name)}catch(e){if(e&&e.code==='declined')return;toast('Export failed. Try again in a moment.')}
+}
 function render(){
   renderTop();
   const app=document.getElementById('app');
-  app.innerHTML=state.view==='walk'?viewWalk():state.view==='card'?viewCard():state.view==='trends'?viewTrends():state.view==='strains'?viewStrains():state.view==='strain'?viewStrain():state.view==='guide'?viewGuide():state.view==='pest'?viewPest():state.view==='sprays'?viewSprays():state.view==='sprayform'?viewSprayForm():state.view==='settings'?viewSettings():viewHome();
+  app.innerHTML=state.view==='walk'?viewWalk():state.view==='card'?viewCard():state.view==='trends'?viewTrends():state.view==='strains'?viewStrains():state.view==='strain'?viewStrain():state.view==='guide'?viewGuide():state.view==='pest'?viewPest():state.view==='sprays'?viewSprays():state.view==='sprayform'?viewSprayForm():state.view==='plantings'?viewPlantings():state.view==='plantform'?viewPlantForm():state.view==='settings'?viewSettings():viewHome();
 }
 function go(view){state.view=view;state.confirmDel=false;render();window.scrollTo(0,0)}
 
@@ -1110,6 +1227,21 @@ document.addEventListener('click',e=>{
   if(a==='trends')return go('trends');
   if(a==='strains'){state.copyText=null;return go('strains')}
   if(a==='guidehome'){state.guideFrom=null;return go('guide')}
+  if(a==='plantings'){state.harvestConfirm=null;return go('plantings')}
+  if(a==='plantfilter'){state.plantFilter=b.dataset.k;return render()}
+  if(a==='plantnew'){if(!(state.plantDraft&&!state.plantId)){const pre={};if(state.view==='walk'&&walks[state.walkId])pre.zone=walks[state.walkId].zone;if(state.view==='strain'&&state.strainKey)pre.cultivar=state.strainKey;state.plantDraft=newPlantDraft(pre)}state.plantId=null;state.plantConfirmDel=false;return go('plantform')}
+  if(a==='plantopen'){const id=b.dataset.id;if(!plantings[id])return;const d=Object.assign(newPlantDraft(),clone(plantings[id]));d.houses=d.houses||[];['lot','flip','expected','harvested','yieldG','notes'].forEach(k=>d[k]=d[k]==null?'':String(d[k]));state.plantId=id;state.plantDraft=d;state.plantConfirmDel=false;return go('plantform')}
+  if(a==='plantsave')return savePlant();
+  if(a==='plantdiscard'){state.plantDraft=null;state.plantId=null;return go('plantings')}
+  if(a==='plantdel'){state.plantConfirmDel=true;return render()}
+  if(a==='plantdelno'){state.plantConfirmDel=false;return render()}
+  if(a==='plantdelyes'){const id=state.plantId;const z=id&&plantings[id]?plantings[id].zone:null;if(id){plantings[id]=null;saveDoc('plantings/'+id)}if(z)refreshZoneCultivar(z);state.plantDraft=null;state.plantId=null;toast('Planting deleted');return go('plantings')}
+  if(a==='pfhouse'&&state.plantDraft){const d=state.plantDraft,k=b.dataset.k;if(k==='all')d.houses=[];else{const n=+k;d.houses=d.houses.includes(n)?d.houses.filter(x=>x!==n):d.houses.concat(n);if(d.houses.length>=HOUSES)d.houses=[]}return render()}
+  if(a==='pfestimate'&&state.plantDraft){const d=state.plantDraft;const n=listedDays(strainOf(d.cultivar));if(n&&d.flip){d.expected=addDays(d.flip,n);render()}return}
+  if(a==='plantharvest'||a==='plantharvestyes'){const id=b.dataset.id;const p=plantings[id];if(!p)return;const k2=areaOf(p.zone).k;if(a==='plantharvest'&&k2==='flower'&&phiConflicts(p.zone,today()).length){state.harvestConfirm=id;return render()}
+    p.harvested=today();p.updatedAt=Date.now();saveDoc('plantings/'+id);refreshZoneCultivar(p.zone);state.harvestConfirm=null;toast((strainOf(p.cultivar)||{n:'Planting'}).n+' in Zone '+p.zone+': '+END_LABEL[k2].toLowerCase()+' today');return render()}
+  if(a==='plantharvestno'){state.harvestConfirm=null;return render()}
+  if(a==='exportplantings')return exportPlantings();
   if(a==='settings'){state.restore=null;state.pinForm=false;state.eraseArmed=false;return go('settings')}
   if(a==='backup')return exportBackup();
   if(a==='restoreyes')return doRestore();
@@ -1152,7 +1284,7 @@ document.addEventListener('click',e=>{
     if(!ZONES.includes(z)){toast('Pick a zone from the list.');return}
     {const zr=zoneREI(z);if(zr.length)toast('Zone '+z+' is in a re-entry period until '+fmtWhen(zr[0].until)+'.')}
     state.startZone=z;state.startDate=d;const id=d+'_Z'+z;
-    if(!walks[id]){walks[id]={zone:z,date:d,strain:zoneMap[z]||null,createdAt:Date.now(),updatedAt:Date.now(),cards:{}};touch(id)}else saveLocal();
+    if(!walks[id]){walks[id]={zone:z,date:d,strain:((plantOn(z,d)||[])[1]||{}).cultivar||zoneMap[z]||null,createdAt:Date.now(),updatedAt:Date.now(),cards:{}};touch(id)}else saveLocal();
     state.walkId=id;const nx=firstOpen(walks[id]);if(nx){state.card=nx;go('card')}else go('walk');return}
   if(a==='open'){state.walkId=b.dataset.id;return go('walk')}
   if(a==='card'){state.card=b.dataset.k;return go('card')}
@@ -1176,6 +1308,7 @@ function firstOpen(w){for(let h=1;h<=HOUSES;h++)for(let c=1;c<=CARDS;c++)if(!car
 
 document.addEventListener('change',e=>{
   const t=e.target;
+  if(t.dataset.pf){pfInput(t,true);return}
   if(t.id==='restore_in'&&t.files&&t.files[0]){readBackupFile(t.files[0]);t.value='';return}
   if(t.id==='sf_prod'&&state.sprayDraft){const d=state.sprayDraft;const p=products.find(x=>x.id===t.value);if(p){d.prodId=p.id;d.product={name:p.name,pcp:p.pcp||'',active:p.active||''};['rei','phi','rate'].forEach(k=>{if(p[k])d[k]=p[k]});if(p.method)d.method=p.method}else{d.prodId='';d.product={name:'',pcp:'',active:''}}render();return}
   if(t.dataset.sf){sfInput(t);return}
@@ -1194,6 +1327,7 @@ function sfInput(t){const d=state.sprayDraft;if(!d)return;const f=t.dataset.sf;c
   if(['rei','phi','date','time'].includes(f)){const el=document.getElementById('sf_calc');if(el)el.innerHTML=calcText(d)}}
 document.addEventListener('input',e=>{
   const t=e.target;
+  if(t.dataset.pf){pfInput(t,false);return}
   if(t.dataset.sf){sfInput(t);return}
   if(t.dataset.inp==='snote'){strainNotes[t.dataset.k]=t.value.slice(0,4000);saveDoc('strains/'+t.dataset.k);return}
   if(t.dataset.inp==='note'){const w=walks[state.walkId];const cd=getCard(w,state.card);const pl=cd.p[t.dataset.k];if(pl){pl.n=t.value.slice(0,500);touch(state.walkId)}}
