@@ -172,7 +172,7 @@ button:active{transform:scale(.97)}
 .seg button.sel.s3{background:var(--h3);color:var(--h3-ink);border-color:var(--h3)}
 .seg button.sel.s4{background:var(--h4);color:var(--h4-ink);border-color:var(--h4)}
 textarea{width:100%;min-height:64px;border:2px solid var(--line);border-radius:16px;background:var(--bg);padding:10px 14px;resize:vertical}
-.nav{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;margin-top:22px}
+.nav{display:grid;grid-template-columns:1fr .8fr 1.35fr;gap:8px;margin-top:22px}.nav .btn{padding-left:8px;padding-right:8px;white-space:nowrap}.nav .btn:disabled{opacity:.4}
 .note{font-size:13px;color:var(--muted)}
 .confirm{display:flex;flex-direction:column;gap:10px;border:2px solid var(--bad);border-radius:20px;padding:16px;margin-top:10px;background:var(--pink-soft)}
 .tbl-wrap{overflow-x:auto;border:2px solid var(--line);border-radius:20px;background:var(--surface);box-shadow:var(--shadow)}
@@ -416,6 +416,13 @@ body.painting .toast{bottom:calc(196px + env(safe-area-inset-bottom,0px))}
 .hol-row{display:grid;grid-template-columns:92px auto 1fr;gap:8px;align-items:center;width:100%;background:none;border:0;border-bottom:1px dashed var(--line);padding:8px 0;text-align:left;color:inherit;font-size:14px}
 .hol-row:last-child{border-bottom:0}
 .hd8{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.card-map-wrap{display:flex;flex-direction:column;gap:6px;width:100%;margin-top:16px;background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:10px 12px;text-align:left;color:inherit;box-shadow:var(--shadow)}
+.cmw-hd{display:flex;flex-direction:column}
+.cmw-hd b{font-family:var(--display);font-weight:600;font-size:16px}
+.cmw-hd small{font-size:13px;color:var(--purple);font-weight:700}
+.card-map{display:block;width:100%;height:auto}
+.cmw-ft{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--muted)}.cmw-ft .linkish{font-size:14px;padding:8px 2px;text-decoration:none}
+.cm-card{cursor:pointer;-webkit-tap-highlight-color:transparent}.cm-card:active .cm-vis,.cm-card:focus-visible .cm-vis{opacity:1}.cm-card:focus{outline:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -611,7 +618,7 @@ function renderTop(){
   else if(state.view==='plantings')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Plantings</div>';
   else if(state.view==='plantform')left='<button class="back" data-act="plantings" aria-label="Back to plantings">‹</button><div class="crumb">'+(state.plantId?'Edit planting':'Log a planting')+'</div>';
   else if(state.view==='alerts')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Rechecks</div>';
-  else if(state.view==='map')left='<button class="back" data-act="'+(state.mapFrom==='walk'?'walk':'home')+'" aria-label="Back">‹</button><div class="crumb">Zone '+state.mapZone+' map</div>';
+  else if(state.view==='map')left='<button class="back" data-act="'+(state.mapFrom==='walk'?'walk':state.mapFrom==='card'?'mapbackcard':'home')+'" aria-label="Back">‹</button><div class="crumb">Zone '+state.mapZone+' map</div>';
   else if(state.view==='calendar')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Calendar</div>';
   else if(state.view==='sprays')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Spray log</div>';
   else if(state.view==='sprayform')left='<button class="back" data-act="sprays" aria-label="Back to spray log">‹</button><div class="crumb">'+(state.sprayId?'Edit spray':'Log a spray')+'</div>';
@@ -676,7 +683,11 @@ function stepper(id,val,act,k){return '<div class="stepper"><button data-act="'+
 function viewCard(){
   const w=walks[state.walkId];if(!w)return viewHome();
   const cd=getCard(w,state.card);
-  let h='<div class="row" style="margin-top:18px;justify-content:space-between"><span class="card-tag">Sticky card '+state.card.replace('H','H').replace('C',' · C')+'</span><span class="note">'+(cd.ce?'Counts entered':'Counts not entered')+'</span></div>';
+  let h='';
+  {const m=maps[w.zone]||mapDefault(w.zone);const hN=+state.card.match(/H(\d+)/)[1],ci=+state.card.match(/C(\d+)/)[1]-1;const p=cardPositions(m,hN)[ci];
+   if(p){const id=((m.cells||{})[hN]||[])[p.t*m.sections+p.s]||'';const ar=(m.areas||[]).find(a=>a.id===id);
+    h+='<div class="card-map-wrap"><span class="cmw-hd"><b>House '+hN+' · card C'+(ci+1)+'</b><small>Trough'+(p.span===2&&p.t+1<m.troughs?'s '+(p.t+1)+'–'+(p.t+2):' '+(p.t+1))+', section '+(p.s+1)+(ar?' · in '+esc(ar.name)+(codeText(ar)?' ('+esc(codeText(ar))+')':''):'')+'</small></span>'+cardMapSvg(w.zone,m,hN,ci)+'<div class="cmw-ft"><span>Tap a card to jump to it</span><button class="linkish" data-act="mapopen" data-k="'+w.zone+'" data-h="'+hN+'">Open zone map ›</button></div></div>'}}
+  h+='<div class="row" style="margin-top:14px;justify-content:space-between"><span class="card-tag">Sticky card '+state.card.replace('H','H').replace('C',' · C')+'</span><span class="note">'+(cd.ce?'Counts entered':'Counts not entered')+'</span></div>';
   {const pf=prevCardFindings(w,state.card);if(pf&&pf.hits.length)h+='<div class="watch" style="margin-top:12px"><b>Last walk on this card ('+esc(fmtShort(pf.date))+'):</b> '+pf.hits.map(esc).join('; ')+'</div>'}
   h+='<div class="card-vis">'+stickySvg(cd)+'<div class="legend">'+CARD_ITEMS.map(i=>'<span><i style="background:'+CATCH_COL[i.k]+'"></i>'+esc(i.n)+' · '+(+cd.c?.[i.k]||0)+'</span>').join('')+'</div></div>';
   h+='<h2>Card catches</h2><div class="panel counts">'+CARD_ITEMS.map(i=>'<div class="count"><div class="nm">'+esc(i.n)+infoBtn('card',i.k)+(i.h?'<small>'+esc(i.h)+'</small>':'')+'</div>'+stepper('c_'+i.k,+cd.c?.[i.k]||0,'step',i.k)+'</div>').join('')+'</div>';
@@ -689,10 +700,14 @@ function viewCard(){
       h+='<label class="note" for="n_'+pk+'">Note</label><textarea id="n_'+pk+'" data-inp="note" data-k="'+pk+'" placeholder="Where on the plant, life stage, anything to recheck">'+esc(pl.n||'')+'</textarea>'}
     h+='</div>'}
   h+='</div>';
+  {const hN=+state.card.match(/H(\d+)/)[1];h+='<h2>House '+hN+' notes</h2><p class="note" style="margin:-4px 0 8px">Shows on every card in House '+hN+'.</p><textarea id="hn_'+hN+'" data-inp="hnote" data-h="'+hN+'" rows="4" placeholder="Anything you see in House '+hN+': hot spots, predators, drippers, card replaced or missing">'+esc(houseNote(w,hN))+'</textarea>'}
   const next=nextCardKey(state.card);
-  h+='<div class="nav"><button class="btn" data-act="walk">Grid</button><button class="btn primary" data-act="next">'+(next?'Next: '+next.replace('C',' · C')+' ›':'Finish walk')+'</button></div>';
+  const prev=prevCardKey(state.card);
+  h+='<div class="nav"><button class="btn" data-act="prev"'+(prev?' aria-label="Previous card, '+prev+'"':' disabled')+'>‹ '+(prev?cardLbl(state.card,prev):'Prev')+'</button><button class="btn" data-act="walk">Grid</button><button class="btn primary" data-act="next">'+(next?'Next: '+cardLbl(state.card,next)+' ›':'Finish walk')+'</button></div>';
   return h;
 }
+function prevCardKey(k){const [h,c]=k.match(/\d+/g).map(Number);if(c>1)return key(h,c-1);if(h>1)return key(h-1,CARDS);return null}
+function cardLbl(from,to){return to.split('C')[0]===from.split('C')[0]?'C'+to.split('C')[1]:to.replace('C',' · C')}
 function nextCardKey(k){const [h,c]=k.match(/\d+/g).map(Number);if(c<CARDS)return key(h,c+1);if(h<curHouses())return key(h+1,1);return null}
 
 function sparkSvg(vals){if(!vals.length)return'';const W=160,H=44,pad=4;const mx=Math.max(1,...vals);const n=vals.length;
@@ -1431,7 +1446,7 @@ function codeText(a){if(!a||!a.codeType)return '';const t=a.codeType==='other'?(
 const MAP_SLOTS=8;
 const MAP_COLOR_NAMES=['Blue','Orange','Aqua','Yellow','Pink','Green','Violet','Red'];
 let mapUndo=[];
-function mapDefault(z){return{troughs:areaOf(z).k==='mother'?10:12,mt10:1,paired:areaOf(z).k!=='mother',sections:areaOf(z).k==='mother'?15:24,sv:2,ms15:1,plants:areaOf(z).k==='flower'?162000:0,areas:[],cells:{}}}
+function mapDefault(z){return{cs35:1,troughs:areaOf(z).k==='mother'?10:12,mt10:1,paired:areaOf(z).k!=='mother',sections:areaOf(z).k==='mother'?15:24,sv:2,ms15:1,plants:areaOf(z).k==='flower'?162000:0,areas:[],cells:{}}}
 function ensureMap(z){if(!maps[z])maps[z]=mapDefault(z);return maps[z]}
 function mapCells(m,h){const n=m.troughs*m.sections;let c=m.cells[h];if(!c||c.length!==n){c=(c||[]).slice(0,n);while(c.length<n)c.push('');m.cells[h]=c}return c}
 function saveMap(z){maps[z].updatedAt=Date.now();saveDoc('maps/'+z)}
@@ -1476,10 +1491,10 @@ function overviewSvg(z,m){const H=housesFor(z),T=m.troughs,S=m.sections,P=Math.c
     s+='</g>'}
   return s+'</svg>'}
 
-function houseSvg(z,m,h){const T=m.troughs,S=m.sections,P=Math.ceil(T/2);const L=24,Tp=20,W=334,pg=3,ag=12;const pd=m.paired!==false;const tw=pd?(W-L-4-P*pg-(P-1)*ag)/T:(W-L-4-(T-1)*ag)/T;const sh=S<=10?22:S<=14?18:S<=24?16:13;const Hh=Tp+S*sh+4;
+function houseSvg(z,m,h){const T=m.troughs,S=m.sections,P=Math.ceil(T/2);const L=24,Tp=8,W=334,pg=3,ag=12;const pd=m.paired!==false;const tw=pd?(W-L-4-P*pg-(P-1)*ag)/T:(W-L-4-(T-1)*ag)/T;const sh=S<=10?22:S<=14?18:S<=24?16:13;const Hh=Tp+S*sh+20;
   const xOf=t=>pd?L+Math.floor(t/2)*(2*tw+pg+ag)+(t%2)*(tw+pg):L+t*(tw+ag);const c=mapCells(m,h);const col={};m.areas.forEach(a=>col[a.id]=a.color);
   let s='<svg class="house-svg'+(state.mapZoom?' zoom':'')+'" viewBox="0 0 '+W+' '+Hh+'" role="img" aria-label="House '+h+' of Zone '+z+'">';
-  for(let t=0;t<T;t++)s+='<text x="'+(xOf(t)+tw/2).toFixed(1)+'" y="13" text-anchor="middle" class="mt">'+(t+1)+'</text>';
+  for(let t=0;t<T;t++)s+='<text x="'+(xOf(t)+tw/2).toFixed(1)+'" y="'+(Tp+S*sh+15)+'" text-anchor="middle" class="mt">'+(t+1)+'</text>';
   for(let q=0;q<S;q++)s+='<text x="'+(L-7)+'" y="'+(Tp+(S-1-q)*sh+sh/2+3.5).toFixed(1)+'" text-anchor="end" class="mt">'+(q+1)+'</text>';
   for(let t=0;t<T;t++){const x=xOf(t);s+='<rect x="'+(x-1.5).toFixed(1)+'" y="'+(Tp-1.5)+'" width="'+(tw+3).toFixed(1)+'" height="'+(S*sh+1)+'" rx="5" fill="none" stroke="var(--line)" stroke-width="1.5"/>';
     for(let q=0;q<S;q++){const id=c[t*S+q]||'';s+='<rect class="mc" data-act="mcell" data-h="'+h+'" data-t="'+t+'" data-s="'+q+'" x="'+x.toFixed(1)+'" y="'+(Tp+(S-1-q)*sh+1)+'" width="'+tw.toFixed(1)+'" height="'+(sh-2)+'" rx="3" fill="'+(id&&col[id]?'var(--m'+col[id]+')':'var(--sunk)')+'"/>'}}
@@ -1488,11 +1503,25 @@ function houseSvg(z,m,h){const T=m.troughs,S=m.sections,P=Math.ceil(T/2);const L
   s+=mapLabels(m,c,xOf,tw,sh,Tp,W,L);
   s+=cardMarkers(z,m,h,xOf,tw,sh,Tp,S);
   return s+'</svg>'}
-function defaultCardPos(m){const T=m.troughs,S=m.sections,pd=m.paired!==false;const sec=f=>Math.max(0,Math.min(S-1,Math.round(S*f)-1));let a,b,span;if(pd&&T>=4){const P=Math.floor(T/2);a=2;b=2*(P-2);span=2}else{a=Math.min(1,T-1);b=Math.max(0,T-2);span=1}return [{t:a,s:sec(.25),span},{t:a,s:sec(.75),span},{t:b,s:sec(.92),span},{t:b,s:sec(.5),span},{t:b,s:sec(.11),span}]}
-function cardPositions(m,h){const d=defaultCardPos(m);const sv=(m.cards||{})[h]||[];return d.map((p,i)=>{const q=sv[i];return q?{t:Math.min(m.troughs-1,q.t),s:Math.min(m.sections-1,q.s),span:1,moved:true}:p})}
+function defaultCardPos(m){const T=m.troughs,S=m.sections,pd=m.paired!==false;const sec=f=>Math.max(0,Math.min(S-1,Math.round(S*f)-1));let a,b,span;if(pd&&T>=4){const P=Math.floor(T/2);a=2;b=2*(P-2);span=2}else{a=Math.min(1,T-1);b=Math.max(0,T-2);span=1}return [{t:a,s:sec(.25),span},{t:a,s:sec(.75),span},{t:b,s:sec(.11),span},{t:b,s:sec(.5),span},{t:b,s:sec(.92),span}]}
+function fixCards35(m){if(m.cs35)return;Object.keys(m.cards||{}).forEach(h=>{const a=m.cards[h];if(a&&a.length>4){const x=a[2];a[2]=a[4];a[4]=x}});m.cs35=1}
+function cardPositions(m,h){const d=defaultCardPos(m);let sv=(m.cards||{})[h]||[];if(sv.length>4&&!m.cs35){sv=sv.slice();const x=sv[2];sv[2]=sv[4];sv[4]=x}return d.map((p,i)=>{const q=sv[i];return q?{t:Math.min(m.troughs-1,q.t),s:Math.min(m.sections-1,q.s),span:1,moved:true}:p})}
 function latestWalk(z){return Object.entries(walks).filter(([,w])=>w&&w.zone===+z).sort((a,b)=>b[1].date.localeCompare(a[1].date))[0]||null}
 function cardMarkers(z,m,h,xOf,tw,sh,Tp,S){const mv=state.mapMoveCard;let o='';cardPositions(m,h).forEach((p,i)=>{const two=p.span===2&&p.t+1<m.troughs;const x0=xOf(p.t),x1=two?xOf(p.t+1)+tw:x0+tw;const w=two?(x1-x0)+2:Math.max(18,Math.min(tw+4,28)),hh=Math.min(sh+6,24);const cx=(x0+x1)/2,cy=Tp+(S-1-p.s)*sh+sh/2;const sel=mv&&mv.z===z&&mv.h===h&&mv.i===i;
   o+='<g'+(state.mapPaint?' pointer-events="none"':' data-act="mcard" data-h="'+h+'" data-i="'+i+'" class="mcard"')+'><rect x="'+(cx-w/2).toFixed(1)+'" y="'+(cy-hh/2).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+hh+'" rx="3" fill="#FFD94F" stroke="'+(sel?'var(--ink)':'#A88A00')+'" stroke-width="'+(sel?2.5:1.3)+'"'+(sel?' stroke-dasharray="3 2"':'')+'/><text x="'+cx.toFixed(1)+'" y="'+(cy+3.2).toFixed(1)+'" text-anchor="middle" class="mct">C'+(i+1)+'</text></g>'});return o}
+function cardMapSvg(z,m,h,ci){const T=m.troughs,S=m.sections,P=Math.ceil(T/2);const L=22,Tp=6,W=334,pg=3,ag=12;const pd=m.paired!==false;const tw=pd?(W-L-4-P*pg-(P-1)*ag)/T:(W-L-4-(T-1)*ag)/T;const sh=Math.max(5,Math.min(9,190/S));const Hh=Tp+S*sh+18;
+  const xOf=t=>pd?L+Math.floor(t/2)*(2*tw+pg+ag)+(t%2)*(tw+pg):L+t*(tw+ag);const c=(m.cells&&m.cells[h])||[];const col={};(m.areas||[]).forEach(a=>col[a.id]=a.color);
+  let s='<svg class="card-map" viewBox="0 0 '+W+' '+Hh.toFixed(1)+'" role="group" aria-label="House '+h+' map. You are on card C'+(ci+1)+'. Tap another card to go to it.">';
+  for(let t=0;t<T;t++)s+='<text x="'+(xOf(t)+tw/2).toFixed(1)+'" y="'+(Tp+S*sh+13).toFixed(1)+'" text-anchor="middle" class="mt">'+(t+1)+'</text>';
+  s+='<text x="'+(L-6)+'" y="'+(Tp+(S-1)*sh+sh/2+3).toFixed(1)+'" text-anchor="end" class="mt">1</text><text x="'+(L-6)+'" y="'+(Tp+sh/2+3).toFixed(1)+'" text-anchor="end" class="mt">'+S+'</text>';
+  for(let t=0;t<T;t++){const x=xOf(t);s+='<rect x="'+(x-1).toFixed(1)+'" y="'+(Tp-1)+'" width="'+(tw+2).toFixed(1)+'" height="'+(S*sh+1).toFixed(1)+'" rx="4" fill="none" stroke="var(--line)" stroke-width="1.2"/>';
+    for(let q=0;q<S;q++){const id=c[t*S+q]||'';s+='<rect x="'+x.toFixed(1)+'" y="'+(Tp+(S-1-q)*sh+.6).toFixed(1)+'" width="'+tw.toFixed(1)+'" height="'+(sh-1.2).toFixed(1)+'" rx="1.5" fill="'+(id&&col[id]?'var(--m'+col[id]+')':'var(--sunk)')+'"/>'}}
+  const ps=cardPositions(m,h);const order=ps.map((p,i)=>i).filter(i=>i!==ci).concat([ci]);
+  order.forEach(i=>{const p=ps[i];const two=p.span===2&&p.t+1<T;const x0=xOf(p.t),x1=two?xOf(p.t+1)+tw:x0+tw;const cur=i===ci;const w=two?(x1-x0)+2:Math.max(18,Math.min(tw+4,28));const hh=cur?17:13;const cx=(x0+x1)/2,cy=Tp+(S-1-p.s)*sh+sh/2;
+    if(cur)s+='<rect x="'+(cx-w/2-4).toFixed(1)+'" y="'+(cy-hh/2-4).toFixed(1)+'" width="'+(w+8).toFixed(1)+'" height="'+(hh+8)+'" rx="7" fill="none" stroke="var(--purple)" stroke-width="2.4"/>';
+    const hit=cur?'':'<rect class="cm-hit" x="'+(cx-w/2-10).toFixed(1)+'" y="'+(cy-hh/2-9).toFixed(1)+'" width="'+(w+20).toFixed(1)+'" height="'+(hh+18)+'" fill="transparent"/>';
+    s+='<g'+(cur?' opacity="1"':' class="cm-card" data-act="card" data-k="H'+h+'C'+(i+1)+'" role="button" tabindex="0" aria-label="Go to card C'+(i+1)+'"')+'>'+hit+'<g class="cm-vis" opacity="'+(cur?1:.55)+'"><rect x="'+(cx-w/2).toFixed(1)+'" y="'+(cy-hh/2).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+hh+'" rx="3" fill="#FFD94F" stroke="'+(cur?'var(--ink)':'#A88A00')+'" stroke-width="'+(cur?1.8:1)+'"/><text x="'+cx.toFixed(1)+'" y="'+(cy+3).toFixed(1)+'" text-anchor="middle" class="mct">C'+(i+1)+'</text></g></g>'});
+  return s+'</svg>'}
 function mapLabels(m,c,xOf,tw,sh,Tp,W,L){const T=m.troughs,S=m.sections;const byId={};m.areas.forEach(a=>byId[a.id]=a);const seen=new Uint8Array(T*S);const best={};
   for(let i=0;i<T*S;i++){const id=c[i];if(!id||seen[i]||!byId[id])continue;const cells=[];const st=[i];seen[i]=1;
     while(st.length){const k=st.pop();cells.push(k);const t=Math.floor(k/S),q=k%S;[[t-1,q],[t+1,q],[t,q-1],[t,q+1]].forEach(([tt,qq])=>{if(tt<0||tt>=T||qq<0||qq>=S)return;const kk=tt*S+qq;if(!seen[kk]&&c[kk]===id){seen[kk]=1;st.push(kk)}})}
@@ -1520,7 +1549,7 @@ function paintBar(m){if(!state.mapPaint)return '';const b=state.mapBrush;const m
    +'<div class="pb-foot"><span class="pb-hint">'+(mode==='box'&&state.boxAnchor?'Now tap the opposite corner.':MAP_HINT[mode])+'</span><button class="btn ghost" data-act="mundo"'+(mapUndo.some(u=>u.z===state.mapZone)?'':' disabled')+'>Undo</button><button class="btn primary" data-act="mpaint">Done</button></div></div></div>'}
 
 function viewMap(){
-  const z=state.mapZone=state.mapZone||state.startZone;if(maps[z]&&!maps[z].sv){if(maps[z].sections===10)resizeMap(z,maps[z].troughs,24);maps[z].sv=2;saveMap(z)}if(maps[z]&&maps[z].paired===undefined){if(areaOf(z).k==='mother'&&maps[z].troughs===12)resizeMap(z,10,maps[z].sections);maps[z].paired=areaOf(z).k!=='mother';saveMap(z)}if(maps[z]&&!maps[z].ms15){if(areaOf(z).k==='mother'&&maps[z].sections===24)resizeMap(z,maps[z].troughs,15);maps[z].ms15=1;saveMap(z)}if(maps[z]&&!maps[z].mt10){if(areaOf(z).k==='mother'&&maps[z].troughs===6)resizeMap(z,10,maps[z].sections);maps[z].mt10=1;saveMap(z)}const m=maps[z]||mapDefault(z);const H=housesFor(z);const ar=areaOf(z);
+  const z=state.mapZone=state.mapZone||state.startZone;if(maps[z]&&!maps[z].sv){if(maps[z].sections===10)resizeMap(z,maps[z].troughs,24);maps[z].sv=2;saveMap(z)}if(maps[z]&&maps[z].paired===undefined){if(areaOf(z).k==='mother'&&maps[z].troughs===12)resizeMap(z,10,maps[z].sections);maps[z].paired=areaOf(z).k!=='mother';saveMap(z)}if(maps[z]&&!maps[z].ms15){if(areaOf(z).k==='mother'&&maps[z].sections===24)resizeMap(z,maps[z].troughs,15);maps[z].ms15=1;saveMap(z)}if(maps[z]&&!maps[z].cs35){fixCards35(maps[z]);saveMap(z)}if(maps[z]&&!maps[z].mt10){if(areaOf(z).k==='mother'&&maps[z].troughs===6)resizeMap(z,10,maps[z].sections);maps[z].mt10=1;saveMap(z)}const m=maps[z]||mapDefault(z);const H=housesFor(z);const ar=areaOf(z);
   if(!state.mapHouse||state.mapHouse>H)state.mapHouse=1;const hh=state.mapHouse;const st=mapStats(z,m);
   let h='<div class="field" style="margin-top:18px"><label for="map_zone">Zone</label><select id="map_zone">'+AREAS.map(a=>'<optgroup label="'+a.n+'">'+a.zones.map(q=>'<option value="'+q+'"'+(q===z?' selected':'')+'>Zone '+q+(maps[q]&&maps[q].areas.length?' · mapped':'')+'</option>').join('')+'</optgroup>').join('')+'</select></div>';
   h+='<p class="sub" style="margin-top:10px">'+ar.n+' · '+H+' houses × '+m.troughs+' troughs × '+m.sections+' sections'+'</p>'+plantsPanel(z,m,H);
@@ -1578,7 +1607,7 @@ function mapAction(a,b){
   if(a==='mbrush'){state.mapBrush=k;if(!state.mapPaint){state.mapPaint=true;state.mapMode=state.mapMode||'cell';state.mapInfo=null}state.boxAnchor=null;return render()}
   if(a==='mpaint'){state.mapPaint=!state.mapPaint;state.boxAnchor=null;state.mapInfo=null;if(state.mapPaint){const m=maps[z];if(m&&m.areas.length&&!m.areas.some(x=>x.id===state.mapBrush))state.mapBrush=m.areas[0].id}return render()}
   if(a==='mmode'){state.mapMode=k;state.boxAnchor=null;return render()}
-  if(a==='mcell'){const h=+b.dataset.h,t=+b.dataset.t,q=+b.dataset.s;if(state.mapPaint)return mapPaintAt(z,h,t,q);const MV=state.mapMoveCard;if(MV&&MV.z===z){if(MV.h!==h){toast('Pick a spot in House '+MV.h+'.');return}const m=ensureMap(z);m.cards=m.cards||{};const cur=cardPositions(m,h).map(p=>({t:p.t,s:p.s}));cur[MV.i]={t,s:q};m.cards[h]=cur;saveMap(z);state.mapMoveCard=null;state.mapInfo={z,h,card:MV.i};toast('Card C'+(MV.i+1)+' moved');return render()}state.mapInfo={z,h,t,s:q};return render()}
+  if(a==='mcell'){const h=+b.dataset.h,t=+b.dataset.t,q=+b.dataset.s;if(state.mapPaint)return mapPaintAt(z,h,t,q);const MV=state.mapMoveCard;if(MV&&MV.z===z){if(MV.h!==h){toast('Pick a spot in House '+MV.h+'.');return}const m=ensureMap(z);fixCards35(m);m.cards=m.cards||{};const cur=cardPositions(m,h).map(p=>({t:p.t,s:p.s}));cur[MV.i]={t,s:q};m.cards[h]=cur;saveMap(z);state.mapMoveCard=null;state.mapInfo={z,h,card:MV.i};toast('Card C'+(MV.i+1)+' moved');return render()}state.mapInfo={z,h,t,s:q};return render()}
   if(a==='mundo'){for(let i=mapUndo.length-1;i>=0;i--){if(mapUndo[i].z===z){const u=mapUndo.splice(i,1)[0];ensureMap(z).cells=JSON.parse(u.cells);saveMap(z);toast('Undone');break}}state.boxAnchor=null;return render()}
   if(a==='mcolor'){const [id,slot]=k.split(':');const ar=(maps[z]||{areas:[]}).areas.find(x=>x.id===id);if(ar){ar.color=+slot;saveMap(z)}return render()}
   if(a==='mdel'){state.mapDelArea=k;return render()}
@@ -1695,13 +1724,15 @@ function render(){
 function go(view){state.view=view;state.confirmDel=false;state.wDateEdit=false;render();window.scrollTo(0,0);armBack()}
 
 /* CSV */
+function houseNote(w,hN){if(w.hn&&w.hn[hN]!=null)return w.hn[hN];const old=[];for(let c=1;c<=CARDS;c++){const cd=w.cards?.[key(hN,c)];if(cd&&cd.n)old.push('C'+c+': '+cd.n)}return old.join('\n')}
 function csvRows(list){
   const rows=[['date','area','zone','cultivar','house','card','plant','source','item','value','note']];
   list.forEach(([,w])=>{const an=areaOf(w.zone).n;const cv=(strainOf(w.strain)||{}).n||'';for(let h=1;h<=housesFor(w.zone);h++)for(let c=1;c<=CARDS;c++){const cd=w.cards?.[key(h,c)];if(!cd)continue;
-    if(cd.ce)CARD_ITEMS.forEach(i=>rows.push([w.date,an,w.zone,cv,h,c,'','sticky card',i.n,+cd.c?.[i.k]||0,'']));
+    if(cd.ce)CARD_ITEMS.forEach(i=>rows.push([w.date,an,w.zone,cv,h,c,'','sticky card',i.n,+cd.c?.[i.k]||0,'']));if(cd.n)rows.push([w.date,an,w.zone,cv,h,c,'','card note','','',cd.n]);
     for(let p=1;p<=plantsFor(w.zone);p++){const pl=cd.p?.['P'+p];if(!plantDone(pl))continue;
       if(pl.s==='clean')rows.push([w.date,an,w.zone,cv,h,c,p,'plant','clean',0,'']);
-      else{const hits=PLANT_ITEMS.filter(i=>(+pl.v?.[i.k]||0)>0);if(!hits.length)rows.push([w.date,an,w.zone,cv,h,c,p,'plant','clean',0,pl.n||'']);hits.forEach((i,ix)=>rows.push([w.date,an,w.zone,cv,h,c,p,'plant',i.n,+pl.v[i.k],ix===0?(pl.n||''):'']))}}}});
+      else{const hits=PLANT_ITEMS.filter(i=>(+pl.v?.[i.k]||0)>0);if(!hits.length)rows.push([w.date,an,w.zone,cv,h,c,p,'plant','clean',0,pl.n||'']);hits.forEach((i,ix)=>rows.push([w.date,an,w.zone,cv,h,c,p,'plant',i.n,+pl.v[i.k],ix===0?(pl.n||''):'']))}}}
+    for(let h=1;h<=housesFor(w.zone);h++){const t=w.hn&&w.hn[h];if(t)rows.push([w.date,an,w.zone,cv,h,'','','house note','','',t])}});
   return rows.map(r=>r.map(v=>{const s=String(v);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}).join(',')).join('\n');
 }
 async function exportCsv(list,name){
@@ -1720,7 +1751,8 @@ document.addEventListener('click',e=>{
   if(a==='calendar'){state.calSel=null;state.calY=null;state.calM=null;return go('calendar')}
   if(['calprev','calnext','caltoday','calday','calmonth','calgo','calholopen','calstart'].includes(a))return calAction(a,b);
   if(a==='map'){state.mapFrom='home';state.mapZone=state.mapZone||state.startZone;state.mapPaint=false;return go('map')}
-  if(a==='mapopen'){state.mapFrom=state.view==='walk'?'walk':'home';state.mapZone=+b.dataset.k;state.mapHouse=1;state.mapPaint=false;state.mapInfo=null;return go('map')}
+  if(a==='mapbackcard')return go('card');
+  if(a==='mapopen'){state.mapFrom=state.view==='walk'?'walk':state.view==='card'?'card':'home';state.mapZone=+b.dataset.k;state.mapHouse=b.dataset.h?+b.dataset.h:1;state.mapMoveCard=null;state.mapPaint=false;state.mapInfo=null;return go('map')}
   if(['mplantsedit','mplantscancel','mplantssave'].includes(a))return mapPlantsAction(a);
   if(a.charAt(0)==='m'&&typeof mapAction==='function'&&['mhouse','mzoom','msetopen','maddarea','medit','mbrush','mpaint','mmode','mcell','mundo','mcolor','mdel','mdelno','mdelyes','mcopy','mclear','mconfirmno','mconfirmyes','mcard','mcardmove','mcardcancel','mcardwalk','mcardreset'].includes(a))return mapAction(a,b);
   if(a==='alerts')return go('alerts');
@@ -1809,6 +1841,7 @@ document.addEventListener('click',e=>{
   if(a==='pissue'){const pk=b.dataset.k;const old=cd.p[pk];cd.p[pk]={s:'issue',v:(old&&old.v)||{},n:(old&&old.n)||''};touch(state.walkId);render();return}
   if(a==='sev'){const pl=cd.p[b.dataset.k];pl.v=pl.v||{};pl.v[b.dataset.i]=+b.dataset.v;touch(state.walkId);render();return}
   if(a==='allclean'){let n=0;for(let p=1;p<=plantsFor(w.zone);p++){if(!plantDone(cd.p['P'+p])){cd.p['P'+p]={s:'clean'};n++}}if(n){touch(state.walkId);render()}toast(n?n+' plant'+(n===1?'':'s')+' marked clean':'All plants on this card are already checked');return}
+  if(a==='prev'){const pv=prevCardKey(state.card);if(pv){state.card=pv;go('card')}return}
   if(a==='next'){if(!cardDone(cd))toast('Card left unfinished. It stays dashed on the grid.');const nx=nextCardKey(state.card);if(nx){state.card=nx;go('card')}else go('walk');return}
 });
 function firstOpen(w){for(let h=1;h<=housesFor(w.zone);h++)for(let c=1;c<=CARDS;c++)if(!cardDone(w.cards?.[key(h,c)],plantsFor(w.zone)))return key(h,c);return null}
@@ -1845,6 +1878,7 @@ document.addEventListener('input',e=>{
   if(t.dataset.pf){pfInput(t,false);return}
   if(t.dataset.sf){sfInput(t);return}
   if(t.dataset.inp==='snote'){strainNotes[t.dataset.k]=t.value.slice(0,4000);saveDoc('strains/'+t.dataset.k);return}
+  if(t.dataset.inp==='hnote'){const w=walks[state.walkId];if(!w)return;const hN=+t.dataset.h;w.hn=w.hn||{};w.hn[hN]=t.value.slice(0,3000);for(let c=1;c<=CARDS;c++){const cd=w.cards?.[key(hN,c)];if(cd&&cd.n)delete cd.n}touch(state.walkId);return}
   if(t.dataset.inp==='note'){const w=walks[state.walkId];const cd=getCard(w,state.card);const pl=cd.p[t.dataset.k];if(pl){pl.n=t.value.slice(0,500);touch(state.walkId)}}
 });
 window.addEventListener('online',()=>{flushPending();updateSync()});
