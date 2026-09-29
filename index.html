@@ -344,7 +344,15 @@ label.btn{cursor:pointer}
 .pb-row.brushes button.on{border-color:var(--ink);background:var(--surface);box-shadow:inset 0 0 0 1px var(--ink)}
 .pb-row.modes button.on{background:var(--green);border-color:var(--green);color:var(--green-ink)}
 .pb-row button i{width:16px;height:16px;border-radius:5px;display:inline-block;flex:none}
-.pb-row button i.er{background:repeating-linear-gradient(45deg,var(--sunk) 0 3px,var(--surface) 3px 6px);border:1.5px solid var(--muted)}
+.pb-row button i.er{background:var(--sunk);border:1.5px dashed var(--muted)}
+.pb-row button i.ex{background:repeating-linear-gradient(45deg,var(--muted) 0 1.5px,var(--surface) 1.5px 4.5px);border:1.5px solid var(--muted)}
+.sw0.ex{background:repeating-linear-gradient(45deg,var(--muted) 0 2px,var(--surface) 2px 6px);border-style:solid;border-color:var(--muted)}
+.hempty{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0 0;padding:8px 8px 8px 14px;border:2px dashed var(--line);border-radius:14px;font-size:14px;color:var(--muted)}
+.hempty.on{border-style:solid;border-color:var(--muted);color:var(--ink);background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--muted) 14%,transparent) 0 3px,transparent 3px 9px)}
+.hempty .btn{flex:none;min-height:38px;padding:0 14px}
+.cell.skip{border:2px solid var(--line);color:var(--muted);background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--muted) 22%,transparent) 0 2px,transparent 2px 7px)}
+.skipnote{margin-top:12px;padding:12px 14px;border:2px dashed var(--muted);border-radius:16px;font-size:15px;line-height:1.45;background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--muted) 10%,transparent) 0 3px,transparent 3px 9px)}
+.cell .sk{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
 .pb-foot{display:flex;gap:8px;align-items:center}
 .pb-hint{flex:1;font-size:12.5px;color:var(--muted);line-height:1.3}
 .pb-foot .btn{min-height:40px;padding:0 14px;font-size:15px}
@@ -552,7 +560,7 @@ function cardTotal(cd){return cd?CARD_ITEMS.reduce((s,i)=>s+(+cd.c?.[i.k]||0),0)
 function plantDone(pl){return pl&&(pl.s==='clean'||pl.s==='issue')}
 function plantMax(pl){if(!pl||pl.s!=='issue')return 0;return Math.max(0,...PLANT_ITEMS.map(i=>+pl.v?.[i.k]||0))}
 function cardDone(cd,n){n=n||curPlants();if(!cd||!cd.ce)return false;for(let p=1;p<=n;p++)if(!plantDone(cd.p?.['P'+p]))return false;return true}
-function walkProgress(w){let cards=0,plants=0;const n=plantsFor(w.zone);for(let h=1;h<=housesFor(w.zone);h++)for(let c=1;c<=CARDS;c++){const cd=w.cards?.[key(h,c)];if(cardDone(cd,n))cards++;for(let p=1;p<=n;p++)if(plantDone(cd?.p?.['P'+p]))plants++}return{cards,plants}}
+function walkProgress(w){let cards=0,plants=0;const n=plantsFor(w.zone);const sk=skipSet(w);for(let h=1;h<=housesFor(w.zone);h++)for(let c=1;c<=CARDS;c++){if(sk.has(key(h,c)))continue;const cd=w.cards?.[key(h,c)];if(cardDone(cd,n))cards++;for(let p=1;p<=n;p++)if(plantDone(cd?.p?.['P'+p]))plants++}return{cards,plants}}
 function walkTotals(w){const t={};CARD_ITEMS.forEach(i=>t[i.k]=0);const inc={};PLANT_ITEMS.forEach(i=>inc[i.k]=0);let findings=0;
   Object.values(w.cards||{}).forEach(cd=>{CARD_ITEMS.forEach(i=>t[i.k]+=(+cd.c?.[i.k]||0));Object.values(cd.p||{}).forEach(pl=>{if(pl.s==='issue'){let any=false;PLANT_ITEMS.forEach(i=>{if((+pl.v?.[i.k]||0)>0){inc[i.k]++;any=true}});if(any)findings++}})});
   return{t,inc,findings,catches:Object.values(t).reduce((a,b)=>a+b,0)}}
@@ -636,8 +644,8 @@ function viewHome(){
   h+='<h2>Walks</h2>';
   if(!list.length)h+='<div class="empty">'+leafSvg()+'<span>No walks yet. Each walk is one zone on one day: 125 plants in Flower and 375 in Veg (25 cards each), 150 in Mothers (15 cards). Your grid, flags and trends fill in as you log.</span></div>';
   else{AREAS.concat([{k:'other',n:'Other'}]).forEach(a=>{const rows=list.filter(([,w])=>areaOf(w.zone).k===a.k);if(!rows.length)return;
-    h+='<div class="area-hd '+a.k+'">'+a.n+'</div><div class="list">';rows.slice(0,30).forEach(([id,w])=>{const p=walkProgress(w),tt=walkTotals(w);const pct=Math.round(p.plants/zoneTotal(w.zone)*100);
-    h+='<button class="walk" data-act="open" data-id="'+esc(id)+'"><span class="z">Z'+w.zone+'</span><span class="d">'+esc(fmtDate(w.date))+'</span><span class="pct">'+pct+'%</span><span class="m">'+(strainOf(w.strain)?esc(strainOf(w.strain).n)+' · ':'')+p.cards+'/'+cardsTotal(w.zone)+' cards · '+tt.catches+' caught · '+tt.findings+' plants flagged'+(pending.has(id)?' · unsaved':'')+'</span></button>'});h+='</div>'})}
+    h+='<div class="area-hd '+a.k+'">'+a.n+'</div><div class="list">';rows.slice(0,30).forEach(([id,w])=>{const p=walkProgress(w),tt=walkTotals(w);const wt=walkPlantsTotal(w);const pct=wt?Math.round(p.plants/wt*100):0;
+    h+='<button class="walk" data-act="open" data-id="'+esc(id)+'"><span class="z">Z'+w.zone+'</span><span class="d">'+esc(fmtDate(w.date))+'</span><span class="pct">'+pct+'%</span><span class="m">'+(strainOf(w.strain)?esc(strainOf(w.strain).n)+' · ':'')+p.cards+'/'+walkCardsTotal(w)+' cards · '+tt.catches+' caught · '+tt.findings+' plants flagged'+(pending.has(id)?' · unsaved':'')+'</span></button>'});h+='</div>'})}
   h+='<div class="home-links"><button class="btn plantb" data-act="map" style="grid-column:1/-1">'+MAPICON+'Zone maps</button><button class="btn sprayb" data-act="calendar" style="grid-column:1/-1">'+'<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="15" r="1.6" fill="var(--green)"/><circle cx="15" cy="15" r="1.6" fill="var(--bad)"/></svg>'+'Calendar</button><button class="btn sticky" data-act="guidehome" >Pest guide</button><button class="btn sprayb" data-act="sprays">Spray log</button><button class="btn plantb" data-act="plantings">Plantings</button><button class="btn" data-act="strains">'+leafSvg()+'Cultivars</button><button class="btn" data-act="trends"'+(list.length?'':' disabled')+'>Trends</button><button class="btn" data-act="alerts">Rechecks</button></div>';
   const nData=Object.values(walks).filter(Boolean).length+Object.values(sprays).filter(Boolean).length;
   if(nData&&(!prefs.lastBackup||Date.now()-prefs.lastBackup>7*864e5))h+='<div class="rule" style="margin-top:14px"><b>'+(prefs.lastBackup?'Last backup was '+Math.floor((Date.now()-prefs.lastBackup)/864e5)+' days ago.':'No backup yet.')+'</b> Your records live only on this phone. <button class="linkish" data-act="backup">Save a backup now</button></div>';
@@ -648,8 +656,8 @@ function viewHome(){
 function viewWalk(){
   const w=walks[state.walkId];if(!w)return viewHome();
   const p=walkProgress(w),tt=walkTotals(w);
-  let h='<div class="stats"><div class="stat"><div class="n">'+p.cards+'<small style="font-size:14px;color:var(--muted)">/'+cardsTotal(w.zone)+'</small></div><div class="l">Cards done</div></div><div class="stat"><div class="n">'+tt.catches+'</div><div class="l">Card catches</div></div><div class="stat"><div class="n">'+tt.findings+'</div><div class="l">Plants flagged</div></div></div>';
-  h+='<div class="bar" aria-label="Plants checked"><span style="width:'+(p.plants/zoneTotal(w.zone)*100)+'%"></span></div><p class="note" style="margin-top:6px">'+p.plants+' of '+zoneTotal(w.zone)+' plants checked · '+plantsFor(w.zone)+' per card</p>';
+  let h='<div class="stats"><div class="stat"><div class="n">'+p.cards+'<small style="font-size:14px;color:var(--muted)">/'+walkCardsTotal(w)+'</small></div><div class="l">Cards done</div></div><div class="stat"><div class="n">'+tt.catches+'</div><div class="l">Card catches</div></div><div class="stat"><div class="n">'+tt.findings+'</div><div class="l">Plants flagged</div></div></div>';
+  {const wt=walkPlantsTotal(w),ns=skipSet(w).size;h+='<div class="bar" aria-label="Plants checked"><span style="width:'+(wt?p.plants/wt*100:0)+'%"></span></div><p class="note" style="margin-top:6px">'+p.plants+' of '+wt+' plants checked · '+plantsFor(w.zone)+' per card'+(ns?' · '+ns+' card'+(ns===1?'':'s')+' in empty spots skipped':'')+'</p>'}
   const st=strainOf(w.strain);
   {const mc=maps[w.zone]?mapCultivars(w.zone):[];if(mc.length)h+='<div class="map-line"><span class="dots">'+mc.map(a=>'<i style="background:var(--m'+a.color+')"></i>').join('')+'</span><span class="t">'+mc.map(a=>esc(a.name)+' '+a.pct+'%').join(' · ')+'</span><button class="linkish" data-act="mapopen" data-k="'+w.zone+'">Map</button></div>'}
   h+='<div class="strain-pick"><label for="wstrain">Cultivar</label>'+strainSelect('wstrain',w.strain||'')+'</div>';
@@ -661,18 +669,19 @@ function viewWalk(){
   h+='<div class="last-spray">'+dropSvg(ls?ls[1].method:'Other')+'<span>'+(ls?'Last spray in Zone '+w.zone+': <b>'+esc(ls[1].product.name)+'</b>'+((ls[1].targets||[]).length?' for '+ls[1].targets.map(k=>esc(targetName(k))).join(', '):'')+', '+esc(daysBefore(ls[1].date,w.date)):'No sprays logged for Zone '+w.zone+' before this walk')+'</span><button class="linkish" data-act="'+(ls?'sprayopen':'spraynew')+'"'+(ls?' data-id="'+esc(ls[0])+'"':'')+'>'+(ls?'Open':'Log one')+'</button>'+(ls?'<button class="linkish" data-act="spraynew">Log spray</button>':'')+'</div>';
   h+='<h2>House × card grid</h2><div class="field" style="margin-bottom:10px"><label for="metric">Colour by</label><select id="metric">'+METRICS.map(m=>'<option value="'+m.k+'"'+(m.k===state.metric?' selected':'')+'>'+esc(m.n)+'</option>').join('')+'</select></div>';
   h+='<div class="grid-wrap"><div class="heat"><div></div>';for(let c=1;c<=CARDS;c++)h+='<div class="hd">C'+c+'</div>';
-  let legend;const NP=plantsFor(w.zone);
+  let legend;const NP=plantsFor(w.zone);const sk=skipSet(w);
   for(let hh=1;hh<=housesFor(w.zone);hh++){h+='<div class="rh">H'+hh+'</div>';for(let c=1;c<=CARDS;c++){const k=key(hh,c),cd=w.cards?.[k];const m=cellMetric(cd,state.metric,NP);legend=m.legend;const done=cardDone(cd);
+    if(sk.has(k)&&!(cd&&(cd.ce||Object.keys(cd.p||{}).length))){h+='<button class="cell skip" data-act="card" data-k="'+k+'" aria-label="House '+hh+' card '+c+', empty spot, skipped"><span class="v">–</span><span class="sk">empty</span></button>';continue}
     let dots='';if(NP<=5){for(let pp=1;pp<=NP;pp++)dots+='<i class="'+(plantDone(cd?.p?.['P'+pp])?'on':'')+'"></i>'}else{let dn=0;for(let pp=1;pp<=NP;pp++)if(plantDone(cd?.p?.['P'+pp]))dn++;dots='<span class="pb"><b style="width:'+(dn/NP*100)+'%"></b></span>'}
     h+='<button class="cell l'+m.l+(done?'':' todo')+'" data-act="card" data-k="'+k+'" aria-label="House '+hh+' card '+c+', value '+m.v+(done?'':', not finished')+'"><span class="v">'+(m.sev?(m.v?m.v:'–'):m.v)+'</span><span class="pd">'+dots+'</span></button>'}}
-  h+='</div></div><div class="legend">'+legend.map((t,i)=>'<span><i class="l'+i+'"></i>'+esc(t)+'</span>').join('')+'<span>· dots = plants checked · dashed = unfinished</span></div>';
+  h+='</div></div><div class="legend">'+legend.map((t,i)=>'<span><i class="l'+i+'"></i>'+esc(t)+'</span>').join('')+'<span>· dots = plants checked · dashed = unfinished'+(sk.size?' · hatched = empty spot, skipped':'')+'</span></div><p class="note" style="margin-top:6px">Empty houses or sections? <button class="linkish" data-act="mapopen" data-k="'+w.zone+'">Mark them on the zone map</button></p>';
   const flags=[];Object.entries(w.cards||{}).forEach(([k,cd])=>Object.entries(cd.p||{}).forEach(([pk,pl])=>{if(pl.s!=='issue')return;PLANT_ITEMS.forEach(i=>{const v=+pl.v?.[i.k]||0;if(v>0)flags.push({k,pk,i,v,note:pl.n})})}));
   flags.sort((a,b)=>b.v-a.v);
   h+='<h2>Plant findings</h2>';
   if(!flags.length)h+='<div class="empty">'+leafSvg()+'<span>No plant findings yet. Happy plants so far.</span></div>';
   else{h+='<div class="flags">';flags.slice(0,30).forEach(f=>{h+='<button class="flag" data-act="card" data-k="'+f.k+'"><span class="loc">'+f.k.replace('H','H').replace('C',' C')+' '+f.pk+'</span><span class="what">'+esc(f.i.n)+'</span><span class="pill l'+f.v+'">'+SEV[f.v]+'</span></button>'});if(flags.length>30)h+='<p class="note">'+(flags.length-30)+' more lower-severity findings.</p>';h+='</div>'}
   h+='<h2>Card catches this walk</h2><div class="tbl-wrap"><table><tbody>'+CARD_ITEMS.map(i=>'<tr><td>'+esc(i.n)+'</td><td>'+tt.t[i.k]+'</td></tr>').join('')+'</tbody></table></div>';
-  h+='<div class="nav"><button class="btn" data-act="export">Export CSV</button><button class="btn primary" data-act="nextopen">'+(p.cards<cardsTotal(w.zone)?'Next unfinished card':'All cards done')+'</button></div>';
+  h+='<div class="nav"><button class="btn" data-act="export">Export CSV</button><button class="btn primary" data-act="nextopen">'+(p.cards<walkCardsTotal(w)?'Next unfinished card':'All cards done')+'</button></div>';
   h+='<div style="margin-top:24px">'+(state.wDateEdit?'<div class="panel"><div class="field"><label for="wdate">Walk date</label><input id="wdate" type="date" value="'+esc(w.date)+'"></div><p class="note" style="margin:8px 0 0">Moves this walk and everything logged in it to the new date. Rechecks and trends follow.</p><div class="row" style="margin-top:10px"><button class="btn primary" data-act="wdatesave">Save date</button><button class="btn ghost" data-act="wdatecancel">Cancel</button></div></div>':'<button class="btn ghost block" data-act="wdate">Change walk date</button>')+(w.dateChangedFrom?'<p class="note" style="margin-top:6px">Originally logged for '+esc(fmtDate(w.dateChangedFrom))+'.</p>':'')+'</div>';
   h+='<div style="margin-top:10px">'+(state.confirmDel?'<div class="confirm"><strong>Delete this walk?</strong><span class="note">All '+cardsTotal(w.zone)+' cards and '+zoneTotal(w.zone)+' plant records for Zone '+w.zone+' on '+esc(fmtDate(w.date))+' are removed for good.</span><div class="row"><button class="btn danger" data-act="delyes">Delete walk</button><button class="btn ghost" data-act="delno">Keep it</button></div></div>':'<button class="btn ghost block" data-act="del" style="color:var(--muted)">Delete walk</button>')+'</div>';
   return h;
@@ -686,7 +695,8 @@ function viewCard(){
   let h='';
   {const m=maps[w.zone]||mapDefault(w.zone);const hN=+state.card.match(/H(\d+)/)[1],ci=+state.card.match(/C(\d+)/)[1]-1;const p=cardPositions(m,hN)[ci];
    if(p){const id=((m.cells||{})[hN]||[])[p.t*m.sections+p.s]||'';const ar=(m.areas||[]).find(a=>a.id===id);
-    h+='<div class="card-map-wrap"><span class="cmw-hd"><b>House '+hN+' · card C'+(ci+1)+'</b><small>Trough'+(p.span===2&&p.t+1<m.troughs?'s '+(p.t+1)+'–'+(p.t+2):' '+(p.t+1))+', section '+(p.s+1)+(ar?' · in '+esc(ar.name)+(codeText(ar)?' ('+esc(codeText(ar))+')':''):'')+'</small></span>'+cardMapSvg(w.zone,m,hN,ci)+'<div class="cmw-ft"><span>Tap a card to jump to it</span><button class="linkish" data-act="mapopen" data-k="'+w.zone+'" data-h="'+hN+'">Open zone map ›</button></div></div>'}}
+    h+='<div class="card-map-wrap"><span class="cmw-hd"><b>House '+hN+' · card C'+(ci+1)+'</b><small>Trough'+(p.span===2&&p.t+1<m.troughs?'s '+(p.t+1)+'–'+(p.t+2):' '+(p.t+1))+', section '+(p.s+1)+(cardSpotEmpty(m,hN,p)?' · marked empty':ar?' · in '+esc(ar.name)+(codeText(ar)?' ('+esc(codeText(ar))+')':''):'')+'</small></span>'+cardMapSvg(w.zone,m,hN,ci)+'<div class="cmw-ft"><span>Tap a card to jump to it</span><button class="linkish" data-act="mapopen" data-k="'+w.zone+'" data-h="'+hN+'">Open zone map ›</button></div></div>'}}
+  if(skipSet(w).has(state.card))h+='<div class="skipnote"><b>This card’s spot is marked empty</b>, so it’s skipped on this walk and doesn’t count toward progress. If there are plants here after all, unmark the spot on the zone map.</div>';
   h+='<div class="row" style="margin-top:14px;justify-content:space-between"><span class="card-tag">Sticky card '+state.card.replace('H','H').replace('C',' · C')+'</span><span class="note">'+(cd.ce?'Counts entered':'Counts not entered')+'</span></div>';
   {const pf=prevCardFindings(w,state.card);if(pf&&pf.hits.length)h+='<div class="watch" style="margin-top:12px"><b>Last walk on this card ('+esc(fmtShort(pf.date))+'):</b> '+pf.hits.map(esc).join('; ')+'</div>'}
   h+='<div class="card-vis">'+stickySvg(cd)+'<div class="legend">'+CARD_ITEMS.map(i=>'<span><i style="background:'+CATCH_COL[i.k]+'"></i>'+esc(i.n)+' · '+(+cd.c?.[i.k]||0)+'</span>').join('')+'</div></div>';
@@ -706,9 +716,11 @@ function viewCard(){
   h+='<div class="nav"><button class="btn" data-act="prev"'+(prev?' aria-label="Previous card, '+prev+'"':' disabled')+'>‹ '+(prev?cardLbl(state.card,prev):'Prev')+'</button><button class="btn" data-act="walk">Grid</button><button class="btn primary" data-act="next">'+(next?'Next: '+cardLbl(state.card,next)+' ›':'Finish walk')+'</button></div>';
   return h;
 }
-function prevCardKey(k){const [h,c]=k.match(/\d+/g).map(Number);if(c>1)return key(h,c-1);if(h>1)return key(h-1,CARDS);return null}
+function cardOrd(k){const [h,c]=k.match(/\d+/g).map(Number);return (h-1)*CARDS+c-1}
+function cardSeq(){const sk=skipSet(walks[state.walkId]);const a=[];for(let h=1;h<=curHouses();h++)for(let c=1;c<=CARDS;c++){const k=key(h,c);if(!sk.has(k))a.push(k)}return a}
+function prevCardKey(k){const o=cardOrd(k);const s=cardSeq().filter(x=>cardOrd(x)<o);return s.length?s[s.length-1]:null}
 function cardLbl(from,to){return to.split('C')[0]===from.split('C')[0]?'C'+to.split('C')[1]:to.replace('C',' · C')}
-function nextCardKey(k){const [h,c]=k.match(/\d+/g).map(Number);if(c<CARDS)return key(h,c+1);if(h<curHouses())return key(h+1,1);return null}
+function nextCardKey(k){const o=cardOrd(k);return cardSeq().find(x=>cardOrd(x)>o)||null}
 
 function sparkSvg(vals){if(!vals.length)return'';const W=160,H=44,pad=4;const mx=Math.max(1,...vals);const n=vals.length;
   const x=i=>n===1?W/2:pad+(W-2*pad)*i/(n-1),y=v=>H-pad-(H-2*pad)*v/mx;
@@ -1449,17 +1461,29 @@ let mapUndo=[];
 function mapDefault(z){return{cs35:1,troughs:areaOf(z).k==='mother'?10:12,mt10:1,paired:areaOf(z).k!=='mother',sections:areaOf(z).k==='mother'?15:24,sv:2,ms15:1,plants:areaOf(z).k==='flower'?162000:0,areas:[],cells:{}}}
 function ensureMap(z){if(!maps[z])maps[z]=mapDefault(z);return maps[z]}
 function mapCells(m,h){const n=m.troughs*m.sections;let c=m.cells[h];if(!c||c.length!==n){c=(c||[]).slice(0,n);while(c.length<n)c.push('');m.cells[h]=c}return c}
-function saveMap(z){maps[z].updatedAt=Date.now();saveDoc('maps/'+z)}
+function saveMap(z){maps[z].updatedAt=Date.now();saveDoc('maps/'+z);syncSkipZone(z)}
+function houseFlagEmpty(m,h){return !!(m&&m.emptyH&&m.emptyH[h])}
+function houseLive(m,h){if(!m||houseFlagEmpty(m,h))return 0;const n=m.troughs*m.sections,c=(m.cells||{})[h]||[];let k=0;for(let i=0;i<n;i++)if(c[i]!=='x')k++;return k}
+function cellEmpty(m,h,t,s){return houseFlagEmpty(m,h)||((m.cells||{})[h]||[])[t*m.sections+s]==='x'}
+function cardSpotEmpty(m,h,p){if(houseFlagEmpty(m,h))return true;const two=p.span===2&&p.t+1<m.troughs;return cellEmpty(m,h,p.t,p.s)&&(!two||cellEmpty(m,h,p.t+1,p.s))}
+function emptyCardKeys(z){const m=maps[z];if(!m)return [];const out=[];for(let h=1;h<=housesFor(z);h++)cardPositions(m,h).forEach((p,i)=>{if(cardSpotEmpty(m,h,p))out.push(key(h,i+1))});return out}
+function skipSet(w){return new Set((w&&w.skip)||[])}
+function syncSkip(id){const w=walks[id];if(!w)return;const s=emptyCardKeys(w.zone);if(s.join()!==(w.skip||[]).join()){if(s.length)w.skip=s;else delete w.skip;touch(id)}}
+function syncSkipZone(z){z=+z;const ids=new Set();const cw=walks[state.walkId];if(cw&&cw.zone===z&&(state.mapFrom==='walk'||state.mapFrom==='card'))ids.add(state.walkId);const lw=latestWalk(z);if(lw&&dayDiff(lw[1].date,today())<=3)ids.add(lw[0]);ids.forEach(syncSkip)}
+function walkCardsTotal(w){return Math.max(0,cardsTotal(w.zone)-skipSet(w).size)}
+function walkPlantsTotal(w){return walkCardsTotal(w)*plantsFor(w.zone)}
+function emptyLabelX(m,h,xOf,tw){const xs=cardPositions(m,h).map(p=>{const two=p.span===2&&p.t+1<m.troughs;return [xOf(p.t),two?xOf(p.t+1)+tw:xOf(p.t)+tw]});const a=Math.min(...xs.map(v=>v[1])),b=Math.max(...xs.map(v=>v[0]));return b>a?(a+b)/2:null}
+function hatchDef(id,s){return '<defs><pattern id="'+id+'" width="'+s+'" height="'+s+'" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="'+s+'" height="'+s+'" fill="var(--surface)"/><rect width="'+(s/3).toFixed(2)+'" height="'+s+'" fill="var(--muted)" opacity=".55"/></pattern></defs>'}
 function housesText(arr){if(!arr.length)return '';const out=[];let a=arr[0],b=arr[0];for(let i=1;i<=arr.length;i++){if(arr[i]===b+1){b=arr[i];continue}out.push(a===b?'H'+a:'H'+a+'–H'+b);a=b=arr[i]}return out.join(', ')}
 function fmtPlants(n){const r=n<1000?Math.round(n/10)*10:Math.round(n/100)*100;return '≈ '+r.toLocaleString()}
 function mapTotalPlants(m,H){if(m.plantsMode==='house'&&m.housePlants){let s=0;for(let h=1;h<=H;h++)s+=+m.housePlants[h]||0;return s}return +m.plants||0}
-function housePlantsOf(m,h,H){if(m.plantsMode==='house'&&m.housePlants)return +m.housePlants[h]||0;return m.plants>0?m.plants/H:0}
-function mapStats(z,m){m=m||maps[z];if(!m)return null;const H=housesFor(z),T=m.troughs,S=m.sections,total=H*T*S;const cnt={},hs={},pl={};
-  for(let h=1;h<=H;h++){const c=m.cells[h]||[];const hp=housePlantsOf(m,h,H)/(T*S);for(let i=0;i<T*S;i++){const id=c[i]||'';if(id){cnt[id]=(cnt[id]||0)+1;pl[id]=(pl[id]||0)+hp;(hs[id]=hs[id]||new Set()).add(h)}}}
+function housePlantsOf(m,h,H){if(m.plantsMode==='house'&&m.housePlants)return +m.housePlants[h]||0;if(!(m.plants>0)||!houseLive(m,h))return 0;let n=0;for(let i=1;i<=H;i++)if(houseLive(m,i))n++;return m.plants/n}
+function mapStats(z,m){m=m||maps[z];if(!m)return null;const H=housesFor(z),T=m.troughs,S=m.sections,total=H*T*S;const cnt={},hs={},pl={};let empty=0;const eh=[],ep=[];
+  for(let h=1;h<=H;h++){const c=m.cells[h]||[];const E=houseFlagEmpty(m,h);const live=houseLive(m,h);const hp=live?housePlantsOf(m,h,H)/live:0;let he=0;for(let i=0;i<T*S;i++){const id=c[i]||'';if(E||id==='x'){he++;continue}if(id){cnt[id]=(cnt[id]||0)+1;pl[id]=(pl[id]||0)+hp;(hs[id]=hs[id]||new Set()).add(h)}}empty+=he;if(he===T*S)eh.push(h);else if(he)ep.push(h)}
   const tp=mapTotalPlants(m,H);const ppc=tp>0?tp/total:0;
   const areas=m.areas.map(a=>Object.assign({},a,{cells:cnt[a.id]||0,pct:total?Math.round((cnt[a.id]||0)/total*100):0,plants:pl[a.id]||0,houses:[...(hs[a.id]||[])].sort((x,y)=>x-y)}));
   const mapped=areas.reduce((s,a)=>s+a.cells,0);const mappedPl=areas.reduce((s,a)=>s+a.plants,0);
-  return{total,ppc,tp,areas,mapped,unmapped:total-mapped,unmappedPlants:Math.max(0,tp-mappedPl),H,T,S}}
+  return{total,ppc,tp,areas,mapped,unmapped:total-mapped-empty,empty,emptyText:[eh.length?housesText(eh)+' whole':'',ep.length?'part of '+housesText(ep):''].filter(Boolean).join(' · '),unmappedPlants:Math.max(0,tp-mappedPl),H,T,S}}
 function plantsPanel(z,m,H){const tot=mapTotalPlants(m,H);const d=state.mapPlantsDraft;
   if(!d||d.z!==z)return '<div class="plants-box"><div class="pbx-t"><div class="pbx-num">'+(tot?Math.round(tot).toLocaleString():'Not set')+'</div><div class="note">Plants in Zone '+z+(m.plantsMode==='house'?' · counted per house':'')+(m.plantsUpdated?' · updated '+esc(fmtShort(m.plantsUpdated)):'')+'</div></div><button class="btn" data-act="mplantsedit">'+(tot?'Change':'Set count')+'</button></div>';
   const byH=d.mode==='house';let sum=0;if(byH)for(let h=1;h<=H;h++)sum+=+d.houses[h]||0;
@@ -1483,24 +1507,26 @@ function nextSlot(m){const used=new Set(m.areas.map(a=>a.color));for(let i=1;i<=
 function mapCultivars(z){const st=mapStats(z);if(!st)return [];return st.areas.filter(a=>a.cells>0)}
 
 function overviewSvg(z,m){const H=housesFor(z),T=m.troughs,S=m.sections,P=Math.ceil(T/2);const W=340,g=8,hw=(W-(H-1)*g)/H,tp=15;const ch=Math.max(4,Math.min(8,80/S));const Hh=tp+S*ch+4;const pg=1.6;const pd=m.paired!==false;const tw=pd?(hw-(P-1)*pg)/T:(hw-(T-1)*pg*1.5)/T;const col={};m.areas.forEach(a=>col[a.id]=a.color);
-  let s='<svg class="ov-svg" viewBox="0 0 '+W+' '+Hh.toFixed(1)+'" role="img" aria-label="Overview of Zone '+z+'">';
+  let s='<svg class="ov-svg" viewBox="0 0 '+W+' '+Hh.toFixed(1)+'" role="img" aria-label="Overview of Zone '+z+'">'+hatchDef('hxo',3);
   for(let h=1;h<=H;h++){const x0=(h-1)*(hw+g);const c=m.cells[h]||[];const cur=(state.mapHouse||1)===h;
     s+='<g data-act="mhouse" data-k="'+h+'" class="ovh"><rect x="'+(x0-3).toFixed(1)+'" y="0" width="'+(hw+6).toFixed(1)+'" height="'+Hh.toFixed(1)+'" rx="7" fill="'+(cur?'var(--leaf-soft)':'var(--surface)')+'" stroke="'+(cur?'var(--green)':'var(--line)')+'" stroke-width="1.5"/><text x="'+(x0+hw/2).toFixed(1)+'" y="11" text-anchor="middle" class="mt">H'+h+'</text>';
-    for(let t=0;t<T;t++){const x=pd?x0+t*tw+Math.floor(t/2)*pg:x0+t*(tw+pg*1.5);for(let q=0;q<S;q++){const id=c[t*S+q]||'';s+='<rect x="'+x.toFixed(2)+'" y="'+(tp+(S-1-q)*ch).toFixed(2)+'" width="'+Math.max(.5,tw-.7).toFixed(2)+'" height="'+(ch-.8).toFixed(2)+'" fill="'+(id&&col[id]?'var(--m'+col[id]+')':'var(--sunk)')+'"/>'}}
+    for(let t=0;t<T;t++){const x=pd?x0+t*tw+Math.floor(t/2)*pg:x0+t*(tw+pg*1.5);for(let q=0;q<S;q++){const id=c[t*S+q]||'';s+='<rect x="'+x.toFixed(2)+'" y="'+(tp+(S-1-q)*ch).toFixed(2)+'" width="'+Math.max(.5,tw-.7).toFixed(2)+'" height="'+(ch-.8).toFixed(2)+'" fill="'+(id==='x'?'url(#hxo)':id&&col[id]?'var(--m'+col[id]+')':'var(--sunk)')+'"/>'}}
     cardPositions(m,h).forEach(p=>{const xo=t=>pd?x0+t*tw+Math.floor(t/2)*pg:x0+t*(tw+pg*1.5);const x=p.span===2&&p.t+1<T?(xo(p.t)+xo(p.t+1)+tw)/2:xo(p.t)+tw/2;s+='<circle cx="'+x.toFixed(2)+'" cy="'+(tp+(S-1-p.s)*ch+ch/2).toFixed(2)+'" r="2.4" fill="#FFD94F" stroke="#A88A00" stroke-width=".7"/>'});
+    if(houseFlagEmpty(m,h))s+='<rect x="'+x0.toFixed(1)+'" y="'+tp+'" width="'+hw.toFixed(1)+'" height="'+(S*ch).toFixed(1)+'" fill="url(#hxo)" opacity=".92" pointer-events="none"/><text x="'+(x0+hw/2).toFixed(1)+'" y="'+(tp+S*ch/2+4).toFixed(1)+'" text-anchor="middle" class="mt" pointer-events="none">Empty</text>';
     s+='</g>'}
   return s+'</svg>'}
 
 function houseSvg(z,m,h){const T=m.troughs,S=m.sections,P=Math.ceil(T/2);const L=24,Tp=8,W=334,pg=3,ag=12;const pd=m.paired!==false;const tw=pd?(W-L-4-P*pg-(P-1)*ag)/T:(W-L-4-(T-1)*ag)/T;const sh=S<=10?22:S<=14?18:S<=24?16:13;const Hh=Tp+S*sh+20;
-  const xOf=t=>pd?L+Math.floor(t/2)*(2*tw+pg+ag)+(t%2)*(tw+pg):L+t*(tw+ag);const c=mapCells(m,h);const col={};m.areas.forEach(a=>col[a.id]=a.color);
-  let s='<svg class="house-svg'+(state.mapZoom?' zoom':'')+'" viewBox="0 0 '+W+' '+Hh+'" role="img" aria-label="House '+h+' of Zone '+z+'">';
+  const xOf=t=>pd?L+Math.floor(t/2)*(2*tw+pg+ag)+(t%2)*(tw+pg):L+t*(tw+ag);const c=mapCells(m,h);const col={};m.areas.forEach(a=>col[a.id]=a.color);const E=houseFlagEmpty(m,h);
+  let s='<svg class="house-svg'+(state.mapZoom?' zoom':'')+'" viewBox="0 0 '+W+' '+Hh+'" role="img" aria-label="House '+h+' of Zone '+z+'">'+hatchDef('hxh',7);
   for(let t=0;t<T;t++)s+='<text x="'+(xOf(t)+tw/2).toFixed(1)+'" y="'+(Tp+S*sh+15)+'" text-anchor="middle" class="mt">'+(t+1)+'</text>';
   for(let q=0;q<S;q++)s+='<text x="'+(L-7)+'" y="'+(Tp+(S-1-q)*sh+sh/2+3.5).toFixed(1)+'" text-anchor="end" class="mt">'+(q+1)+'</text>';
   for(let t=0;t<T;t++){const x=xOf(t);s+='<rect x="'+(x-1.5).toFixed(1)+'" y="'+(Tp-1.5)+'" width="'+(tw+3).toFixed(1)+'" height="'+(S*sh+1)+'" rx="5" fill="none" stroke="var(--line)" stroke-width="1.5"/>';
-    for(let q=0;q<S;q++){const id=c[t*S+q]||'';s+='<rect class="mc" data-act="mcell" data-h="'+h+'" data-t="'+t+'" data-s="'+q+'" x="'+x.toFixed(1)+'" y="'+(Tp+(S-1-q)*sh+1)+'" width="'+tw.toFixed(1)+'" height="'+(sh-2)+'" rx="3" fill="'+(id&&col[id]?'var(--m'+col[id]+')':'var(--sunk)')+'"/>'}}
+    for(let q=0;q<S;q++){const id=c[t*S+q]||'';s+='<rect class="mc" data-act="mcell" data-h="'+h+'" data-t="'+t+'" data-s="'+q+'" x="'+x.toFixed(1)+'" y="'+(Tp+(S-1-q)*sh+1)+'" width="'+tw.toFixed(1)+'" height="'+(sh-2)+'" rx="3" fill="'+(id==='x'?'url(#hxh)':id&&col[id]?'var(--m'+col[id]+')':'var(--sunk)')+'"/>'}}
   const A=state.boxAnchor;if(A&&A.z===z&&A.h===h)s+='<rect x="'+(xOf(A.t)-2).toFixed(1)+'" y="'+(Tp+(S-1-A.s)*sh-1)+'" width="'+(tw+4).toFixed(1)+'" height="'+(sh+2)+'" rx="4" fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-dasharray="3 2" pointer-events="none"/>';
   const I=state.mapInfo;if(I&&I.z===z&&I.h===h&&I.card==null&&!state.mapPaint)s+='<rect x="'+(xOf(I.t)-2).toFixed(1)+'" y="'+(Tp+(S-1-I.s)*sh-1)+'" width="'+(tw+4).toFixed(1)+'" height="'+(sh+2)+'" rx="4" fill="none" stroke="var(--ink)" stroke-width="2.2" pointer-events="none"/>';
-  s+=mapLabels(m,c,xOf,tw,sh,Tp,W,L);
+  if(E){s+='<rect x="'+(L-2)+'" y="'+(Tp-2)+'" width="'+(W-L)+'" height="'+(S*sh+3)+'" rx="6" fill="url(#hxh)" opacity=".85" pointer-events="none"/>';const ex=emptyLabelX(m,h,xOf,tw);const cx=ex==null?(L+W)/2:ex,cy=Tp+S*sh/2;s+='<g pointer-events="none"><rect x="'+(cx-50).toFixed(1)+'" y="'+(cy-14)+'" width="100" height="28" rx="14" fill="var(--surface)" stroke="var(--ink)" stroke-opacity=".3"/><text x="'+cx.toFixed(1)+'" y="'+(cy+5)+'" text-anchor="middle" class="mlt" style="font-size:13px">Empty house</text></g>'}
+  else s+=mapLabels(m,c,xOf,tw,sh,Tp,W,L);
   s+=cardMarkers(z,m,h,xOf,tw,sh,Tp,S);
   return s+'</svg>'}
 function defaultCardPos(m){const T=m.troughs,S=m.sections,pd=m.paired!==false;const sec=f=>Math.max(0,Math.min(S-1,Math.round(S*f)-1));let a,b,span;if(pd&&T>=4){const P=Math.floor(T/2);a=2;b=2*(P-2);span=2}else{a=Math.min(1,T-1);b=Math.max(0,T-2);span=1}return [{t:a,s:sec(.25),span},{t:a,s:sec(.75),span},{t:b,s:sec(.11),span},{t:b,s:sec(.5),span},{t:b,s:sec(.92),span}]}
@@ -1508,21 +1534,22 @@ function fixCards35(m){if(m.cs35)return;Object.keys(m.cards||{}).forEach(h=>{con
 function cardPositions(m,h){const d=defaultCardPos(m);let sv=(m.cards||{})[h]||[];if(sv.length>4&&!m.cs35){sv=sv.slice();const x=sv[2];sv[2]=sv[4];sv[4]=x}return d.map((p,i)=>{const q=sv[i];return q?{t:Math.min(m.troughs-1,q.t),s:Math.min(m.sections-1,q.s),span:1,moved:true}:p})}
 function latestWalk(z){return Object.entries(walks).filter(([,w])=>w&&w.zone===+z).sort((a,b)=>b[1].date.localeCompare(a[1].date))[0]||null}
 function cardMarkers(z,m,h,xOf,tw,sh,Tp,S){const mv=state.mapMoveCard;let o='';cardPositions(m,h).forEach((p,i)=>{const two=p.span===2&&p.t+1<m.troughs;const x0=xOf(p.t),x1=two?xOf(p.t+1)+tw:x0+tw;const w=two?(x1-x0)+2:Math.max(18,Math.min(tw+4,28)),hh=Math.min(sh+6,24);const cx=(x0+x1)/2,cy=Tp+(S-1-p.s)*sh+sh/2;const sel=mv&&mv.z===z&&mv.h===h&&mv.i===i;
-  o+='<g'+(state.mapPaint?' pointer-events="none"':' data-act="mcard" data-h="'+h+'" data-i="'+i+'" class="mcard"')+'><rect x="'+(cx-w/2).toFixed(1)+'" y="'+(cy-hh/2).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+hh+'" rx="3" fill="#FFD94F" stroke="'+(sel?'var(--ink)':'#A88A00')+'" stroke-width="'+(sel?2.5:1.3)+'"'+(sel?' stroke-dasharray="3 2"':'')+'/><text x="'+cx.toFixed(1)+'" y="'+(cy+3.2).toFixed(1)+'" text-anchor="middle" class="mct">C'+(i+1)+'</text></g>'});return o}
+  o+='<g'+(cardSpotEmpty(m,h,p)?' opacity=".45"':'')+(state.mapPaint?' pointer-events="none"':' data-act="mcard" data-h="'+h+'" data-i="'+i+'" class="mcard"')+'><rect x="'+(cx-w/2).toFixed(1)+'" y="'+(cy-hh/2).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+hh+'" rx="3" fill="#FFD94F" stroke="'+(sel?'var(--ink)':'#A88A00')+'" stroke-width="'+(sel?2.5:1.3)+'"'+(sel?' stroke-dasharray="3 2"':'')+'/><text x="'+cx.toFixed(1)+'" y="'+(cy+3.2).toFixed(1)+'" text-anchor="middle" class="mct">C'+(i+1)+'</text></g>'});return o}
 function cardMapSvg(z,m,h,ci){const T=m.troughs,S=m.sections,P=Math.ceil(T/2);const L=22,Tp=6,W=334,pg=3,ag=12;const pd=m.paired!==false;const tw=pd?(W-L-4-P*pg-(P-1)*ag)/T:(W-L-4-(T-1)*ag)/T;const sh=Math.max(5,Math.min(9,190/S));const Hh=Tp+S*sh+18;
-  const xOf=t=>pd?L+Math.floor(t/2)*(2*tw+pg+ag)+(t%2)*(tw+pg):L+t*(tw+ag);const c=(m.cells&&m.cells[h])||[];const col={};(m.areas||[]).forEach(a=>col[a.id]=a.color);
-  let s='<svg class="card-map" viewBox="0 0 '+W+' '+Hh.toFixed(1)+'" role="group" aria-label="House '+h+' map. You are on card C'+(ci+1)+'. Tap another card to go to it.">';
+  const xOf=t=>pd?L+Math.floor(t/2)*(2*tw+pg+ag)+(t%2)*(tw+pg):L+t*(tw+ag);const c=(m.cells&&m.cells[h])||[];const col={};(m.areas||[]).forEach(a=>col[a.id]=a.color);const E=houseFlagEmpty(m,h);
+  let s='<svg class="card-map" viewBox="0 0 '+W+' '+Hh.toFixed(1)+'" role="group" aria-label="House '+h+' map. You are on card C'+(ci+1)+'. Tap another card to go to it.">'+hatchDef('hxc',5);
   for(let t=0;t<T;t++)s+='<text x="'+(xOf(t)+tw/2).toFixed(1)+'" y="'+(Tp+S*sh+13).toFixed(1)+'" text-anchor="middle" class="mt">'+(t+1)+'</text>';
   s+='<text x="'+(L-6)+'" y="'+(Tp+(S-1)*sh+sh/2+3).toFixed(1)+'" text-anchor="end" class="mt">1</text><text x="'+(L-6)+'" y="'+(Tp+sh/2+3).toFixed(1)+'" text-anchor="end" class="mt">'+S+'</text>';
   for(let t=0;t<T;t++){const x=xOf(t);s+='<rect x="'+(x-1).toFixed(1)+'" y="'+(Tp-1)+'" width="'+(tw+2).toFixed(1)+'" height="'+(S*sh+1).toFixed(1)+'" rx="4" fill="none" stroke="var(--line)" stroke-width="1.2"/>';
-    for(let q=0;q<S;q++){const id=c[t*S+q]||'';s+='<rect x="'+x.toFixed(1)+'" y="'+(Tp+(S-1-q)*sh+.6).toFixed(1)+'" width="'+tw.toFixed(1)+'" height="'+(sh-1.2).toFixed(1)+'" rx="1.5" fill="'+(id&&col[id]?'var(--m'+col[id]+')':'var(--sunk)')+'"/>'}}
+    for(let q=0;q<S;q++){const id=c[t*S+q]||'';s+='<rect x="'+x.toFixed(1)+'" y="'+(Tp+(S-1-q)*sh+.6).toFixed(1)+'" width="'+tw.toFixed(1)+'" height="'+(sh-1.2).toFixed(1)+'" rx="1.5" fill="'+(E||id==='x'?'url(#hxc)':id&&col[id]?'var(--m'+col[id]+')':'var(--sunk)')+'"/>'}}
+  if(E){const ex=emptyLabelX(m,h,xOf,tw);const cx=ex==null?(L+W)/2:ex,cy=Tp+S*sh/2;s+='<g pointer-events="none"><rect x="'+(cx-44).toFixed(1)+'" y="'+(cy-11).toFixed(1)+'" width="88" height="22" rx="11" fill="var(--surface)" stroke="var(--ink)" stroke-opacity=".3"/><text x="'+cx.toFixed(1)+'" y="'+(cy+4).toFixed(1)+'" text-anchor="middle" class="mlt" style="font-size:12px">Empty house</text></g>'}
   const ps=cardPositions(m,h);const order=ps.map((p,i)=>i).filter(i=>i!==ci).concat([ci]);
   order.forEach(i=>{const p=ps[i];const two=p.span===2&&p.t+1<T;const x0=xOf(p.t),x1=two?xOf(p.t+1)+tw:x0+tw;const cur=i===ci;const w=two?(x1-x0)+2:Math.max(18,Math.min(tw+4,28));const hh=cur?17:13;const cx=(x0+x1)/2,cy=Tp+(S-1-p.s)*sh+sh/2;
     if(cur)s+='<rect x="'+(cx-w/2-4).toFixed(1)+'" y="'+(cy-hh/2-4).toFixed(1)+'" width="'+(w+8).toFixed(1)+'" height="'+(hh+8)+'" rx="7" fill="none" stroke="var(--purple)" stroke-width="2.4"/>';
     const hit=cur?'':'<rect class="cm-hit" x="'+(cx-w/2-10).toFixed(1)+'" y="'+(cy-hh/2-9).toFixed(1)+'" width="'+(w+20).toFixed(1)+'" height="'+(hh+18)+'" fill="transparent"/>';
-    s+='<g'+(cur?' opacity="1"':' class="cm-card" data-act="card" data-k="H'+h+'C'+(i+1)+'" role="button" tabindex="0" aria-label="Go to card C'+(i+1)+'"')+'>'+hit+'<g class="cm-vis" opacity="'+(cur?1:.55)+'"><rect x="'+(cx-w/2).toFixed(1)+'" y="'+(cy-hh/2).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+hh+'" rx="3" fill="#FFD94F" stroke="'+(cur?'var(--ink)':'#A88A00')+'" stroke-width="'+(cur?1.8:1)+'"/><text x="'+cx.toFixed(1)+'" y="'+(cy+3).toFixed(1)+'" text-anchor="middle" class="mct">C'+(i+1)+'</text></g></g>'});
+    s+='<g'+(cur?' opacity="1"':' class="cm-card" data-act="card" data-k="H'+h+'C'+(i+1)+'" role="button" tabindex="0" aria-label="Go to card C'+(i+1)+'"')+'>'+hit+'<g class="cm-vis" opacity="'+(cur?1:cardSpotEmpty(m,h,p)?.35:.55)+'"><rect x="'+(cx-w/2).toFixed(1)+'" y="'+(cy-hh/2).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+hh+'" rx="3" fill="#FFD94F" stroke="'+(cur?'var(--ink)':'#A88A00')+'" stroke-width="'+(cur?1.8:1)+'"/><text x="'+cx.toFixed(1)+'" y="'+(cy+3).toFixed(1)+'" text-anchor="middle" class="mct">C'+(i+1)+'</text></g></g>'});
   return s+'</svg>'}
-function mapLabels(m,c,xOf,tw,sh,Tp,W,L){const T=m.troughs,S=m.sections;const byId={};m.areas.forEach(a=>byId[a.id]=a);const seen=new Uint8Array(T*S);const best={};
+function mapLabels(m,c,xOf,tw,sh,Tp,W,L){const T=m.troughs,S=m.sections;const byId={};m.areas.forEach(a=>byId[a.id]=a);byId.x={name:'Empty',color:0};const seen=new Uint8Array(T*S);const best={};
   for(let i=0;i<T*S;i++){const id=c[i];if(!id||seen[i]||!byId[id])continue;const cells=[];const st=[i];seen[i]=1;
     while(st.length){const k=st.pop();cells.push(k);const t=Math.floor(k/S),q=k%S;[[t-1,q],[t+1,q],[t,q-1],[t,q+1]].forEach(([tt,qq])=>{if(tt<0||tt>=T||qq<0||qq>=S)return;const kk=tt*S+qq;if(!seen[kk]&&c[kk]===id){seen[kk]=1;st.push(kk)}})}
     if(!best[id]||cells.length>best[id].length)best[id]=cells}
@@ -1531,7 +1558,7 @@ function mapLabels(m,c,xOf,tw,sh,Tp,W,L){const T=m.troughs,S=m.sections;const by
     let pick=cells[0],bd=1e9;cells.forEach(k=>{const d=(Math.floor(k/S)-cx)**2+((k%S)-cy)**2;if(d<bd){bd=d;pick=k}});
     const t=Math.floor(pick/S),q=pick%S;const name=a.name.length>16?a.name.slice(0,15)+'…':a.name;const w=Math.min(W-L-4,24+name.length*5.6);
     let x=xOf(t)+tw/2-w/2;x=Math.max(L-2,Math.min(W-2-w,x));const y=Tp+(S-1-q)*sh+sh/2-8;
-    out+='<g pointer-events="none"><rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+w.toFixed(1)+'" height="16" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-opacity=".25"/><circle cx="'+(x+9).toFixed(1)+'" cy="'+(y+8).toFixed(1)+'" r="4" fill="var(--m'+a.color+')"/><text x="'+(x+17).toFixed(1)+'" y="'+(y+11.5).toFixed(1)+'" class="mlt">'+esc(name)+'</text></g>'});
+    out+='<g pointer-events="none"><rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+w.toFixed(1)+'" height="16" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-opacity=".25"/>'+(a.color?'<circle cx="'+(x+9).toFixed(1)+'" cy="'+(y+8).toFixed(1)+'" r="4" fill="var(--m'+a.color+')"/>':'')+'<text x="'+(x+(a.color?17:10)).toFixed(1)+'" y="'+(y+11.5).toFixed(1)+'" class="mlt">'+esc(name)+'</text></g>'});
   return out}
 
 function areaRow(z,m,a){const on=state.mapPaint&&state.mapBrush===a.id;const cv=a.cultivar&&strainOf(a.cultivar);
@@ -1544,7 +1571,7 @@ function areaRow(z,m,a){const on=state.mapPaint&&state.mapBrush===a.id;const cv=
 
 const MAP_HINT={cell:'Tap sections to paint them one at a time.',box:'Tap one corner, then the opposite corner, to fill a block.',trough:'Tap a trough to paint its whole length.',house:'Tap anywhere in the house to paint all of it.',zone:'Tap the map to paint every house in the zone.'};
 function paintBar(m){if(!state.mapPaint)return '';const b=state.mapBrush;const mode=state.mapMode||'cell';
-  return '<div class="paintbar"><div class="pb-in"><div class="pb-row brushes">'+m.areas.map(a=>'<button class="'+(b===a.id?'on':'')+'" data-act="mbrush" data-k="'+esc(a.id)+'"><i style="background:var(--m'+a.color+')"></i>'+esc(a.name)+'</button>').join('')+'<button class="'+(b===''?'on':'')+'" data-act="mbrush" data-k=""><i class="er"></i>Eraser</button></div>'
+  return '<div class="paintbar"><div class="pb-in"><div class="pb-row brushes">'+m.areas.map(a=>'<button class="'+(b===a.id?'on':'')+'" data-act="mbrush" data-k="'+esc(a.id)+'"><i style="background:var(--m'+a.color+')"></i>'+esc(a.name)+'</button>').join('')+'<button class="'+(b==='x'?'on':'')+'" data-act="mbrush" data-k="x"><i class="ex"></i>Empty</button><button class="'+(b===''?'on':'')+'" data-act="mbrush" data-k=""><i class="er"></i>Eraser</button></div>'
    +'<div class="pb-row modes">'+[['cell','Section'],['box','Box'],['trough','Trough'],['house','House'],['zone','Zone']].map(([k,n])=>'<button class="'+(mode===k?'on':'')+'" data-act="mmode" data-k="'+k+'" aria-pressed="'+(mode===k)+'">'+n+'</button>').join('')+'</div>'
    +'<div class="pb-foot"><span class="pb-hint">'+(mode==='box'&&state.boxAnchor?'Now tap the opposite corner.':MAP_HINT[mode])+'</span><button class="btn ghost" data-act="mundo"'+(mapUndo.some(u=>u.z===state.mapZone)?'':' disabled')+'>Undo</button><button class="btn primary" data-act="mpaint">Done</button></div></div></div>'}
 
@@ -1555,17 +1582,18 @@ function viewMap(){
   h+='<p class="sub" style="margin-top:10px">'+ar.n+' · '+H+' houses × '+m.troughs+' troughs × '+m.sections+' sections'+'</p>'+plantsPanel(z,m,H);
   h+='<div class="map-panel">'+overviewSvg(z,m)+'</div>';
   h+='<h2>'+leafSvg()+'Areas</h2>';
-  if(!m.areas.length)h+='<div class="empty">'+leafSvg()+'<span>No areas yet. Add one for each cultivar in this zone, then paint where it grows.</span></div>';
-  else h+='<div class="panel area-list">'+st.areas.map(a=>areaRow(z,m,a)).join('')+(st.unmapped?'<div class="area-row"><span class="sw0"></span><span class="ar-t"><b>Not mapped</b><small>'+Math.round(st.unmapped/st.total*100)+'%'+(st.tp?' · '+fmtPlants(st.unmappedPlants)+' plants':'')+'</small></span></div>':'')+'</div>';
-  h+='<div class="row" style="margin-top:10px"><button class="btn primary" data-act="maddarea">Add area</button>'+(m.areas.length&&!state.mapPaint?'<button class="btn" data-act="mpaint">Paint areas</button>':'')+'</div>';
+  if(!m.areas.length&&!st.empty)h+='<div class="empty">'+leafSvg()+'<span>No areas yet. Add one for each cultivar in this zone, then paint where it grows.</span></div>';
+  else h+='<div class="panel area-list">'+st.areas.map(a=>areaRow(z,m,a)).join('')+(st.empty?'<div class="area-row"><span class="sw0 ex"></span><span class="ar-t"><b>Empty</b><small>'+Math.round(st.empty/st.total*100)+'% · '+esc(st.emptyText)+'</small></span></div>':'')+(st.unmapped?'<div class="area-row"><span class="sw0"></span><span class="ar-t"><b>Not mapped</b><small>'+Math.round(st.unmapped/st.total*100)+'%'+(st.tp?' · '+fmtPlants(st.unmappedPlants)+' plants':'')+'</small></span></div>':'')+'</div>';
+  h+='<div class="row" style="margin-top:10px"><button class="btn primary" data-act="maddarea">Add area</button>'+(m.areas.length&&!state.mapPaint?'<button class="btn" data-act="mpaint">Paint areas</button>':'')+(!state.mapPaint?'<button class="btn" data-act="mempty">Mark empty</button>':'')+'</div>';
   h+='<h2>'+leafSvg()+'House '+hh+'</h2><div class="chips" role="group" aria-label="House">'+range(1,H).map(n=>'<button class="'+(n===hh?'on':'')+'" data-act="mhouse" data-k="'+n+'" aria-pressed="'+(n===hh)+'">H'+n+'</button>').join('')+'<button class="'+(state.mapZoom?'on':'')+'" data-act="mzoom" aria-pressed="'+!!state.mapZoom+'">'+(state.mapZoom?'Fit to screen':'Zoom in')+'</button></div>';
+  {const E=houseFlagEmpty(m,hh);h+='<div class="hempty'+(E?' on':'')+'"><span>'+(E?'<b>House '+hh+' is empty.</b> Its cards are skipped on walks. Painted areas are kept for when it’s replanted.':'Is House '+hh+' empty right now?')+'</span><button class="btn'+(E?'':' ghost')+'" data-act="mhempty" data-k="'+hh+'">'+(E?'Unmark':'Mark empty')+'</button></div>'}
   h+='<div class="map-panel'+(state.mapZoom?' scroll':'')+'">'+houseSvg(z,m,hh)+'</div>';
   const I=state.mapInfo;
   const MV=state.mapMoveCard;
   if(MV&&MV.z===z&&!state.mapPaint)h+='<div class="map-info">Tap the section in House '+MV.h+' where card <b>C'+(MV.i+1)+'</b> hangs. <button class="linkish" data-act="mcardcancel">Cancel</button></div>';
   else if(I&&I.z===z&&I.card!=null&&!state.mapPaint){const p=cardPositions(m,I.h)[I.card];const lw=latestWalk(z);const ck='H'+I.h+'C'+(I.card+1);const cd=lw&&lw[1].cards&&lw[1].cards[ck];let txt;if(cd){const fl=Object.values(cd.p||{}).filter(pl=>plantMax(pl)>0).length;txt='Latest walk ('+esc(fmtShort(lw[1].date))+'): '+cardTotal(cd)+' caught, '+fl+' plant'+(fl===1?'':'s')+' flagged.'}else txt=lw?'Not scouted on the latest walk ('+esc(fmtShort(lw[1].date))+').':'No walks in this zone yet.';
-    h+='<div class="map-info"><b>Sticky card C'+(I.card+1)+'</b> · House '+I.h+' · trough'+(p.span===2?'s '+(p.t+1)+'–'+(p.t+2):' '+(p.t+1))+' · section '+(p.s+1)+(p.moved?'':' (default spot)')+'<div class="note" style="margin-top:4px">'+txt+'</div><div class="row" style="margin-top:8px"><button class="btn ghost" data-act="mcardmove">Move card</button>'+(cd?'<button class="btn ghost" data-act="mcardwalk" data-k="'+esc(lw[0])+'">Open this card</button>':'')+'</div></div>'}
-  else if(I&&I.z===z&&!state.mapPaint){const id=(m.cells[I.h]||[])[I.t*m.sections+I.s]||'';const a=m.areas.find(x=>x.id===id);h+='<div class="map-info">House '+I.h+' · trough '+(I.t+1)+' · section '+(I.s+1)+': <b>'+(a?esc(a.name):'not mapped')+'</b>'+(housePlantsOf(m,I.h,H)?' <span class="note">('+fmtPlants(housePlantsOf(m,I.h,H)/(m.troughs*m.sections))+' plants per section in this house)</span>':'')+'</div>'}
+    h+='<div class="map-info"><b>Sticky card C'+(I.card+1)+'</b> · House '+I.h+' · trough'+(p.span===2?'s '+(p.t+1)+'–'+(p.t+2):' '+(p.t+1))+' · section '+(p.s+1)+(p.moved?'':' (default spot)')+'<div class="note" style="margin-top:4px">'+(cardSpotEmpty(m,I.h,p)?'This spot is marked empty, so the card is skipped on walks. ':'')+txt+'</div><div class="row" style="margin-top:8px"><button class="btn ghost" data-act="mcardmove">Move card</button>'+(cd?'<button class="btn ghost" data-act="mcardwalk" data-k="'+esc(lw[0])+'">Open this card</button>':'')+'</div></div>'}
+  else if(I&&I.z===z&&!state.mapPaint){const id=(m.cells[I.h]||[])[I.t*m.sections+I.s]||'';const a=m.areas.find(x=>x.id===id);h+='<div class="map-info">House '+I.h+' · trough '+(I.t+1)+' · section '+(I.s+1)+': <b>'+(cellEmpty(m,I.h,I.t,I.s)?'empty':a?esc(a.name):'not mapped')+'</b>'+(!cellEmpty(m,I.h,I.t,I.s)&&housePlantsOf(m,I.h,H)?' <span class="note">('+fmtPlants(housePlantsOf(m,I.h,H)/(houseLive(m,I.h)||1))+' plants per section in this house)</span>':'')+'</div>'}
   else if(!state.mapPaint)h+='<p class="note" style="margin-top:8px">Tap a section to see what’s there.'+(m.areas.length?' Tap <b>Paint areas</b> to change the map.':'')+'</p>';
   h+='<p class="note" style="margin-top:6px">Yellow tags C1–C5 are the sticky cards in each house. Tap one to see its latest walk or move it. Troughs 1–'+m.troughs+' run left to right'+(m.paired!==false?' in pairs, about 80 cm between pairs':', one at a time')+'. Sections run from 1 at the bottom of each trough to '+m.sections+' at the top. The drawing isn’t to scale along the trough.</p>';
   const T=m.troughs,S=m.sections;const perT=mapTotalPlants(m,H)?mapTotalPlants(m,H)/(H*T):0;
@@ -1604,8 +1632,10 @@ function mapAction(a,b){
   if(a==='msetopen'){state.mapSetOpen=!state.mapSetOpen;return}
   if(a==='maddarea'){const m=ensureMap(z);const id='a'+Date.now().toString(36).slice(-5)+Math.random().toString(36).slice(2,4);m.areas.push({id,name:'Area '+(m.areas.length+1),cultivar:'',color:nextSlot(m)});state.mapEdit=id;state.mapBrush=id;state.mapPaint=true;state.mapMode=state.mapMode||'cell';state.mapInfo=null;state.boxAnchor=null;saveMap(z);render();setTimeout(()=>{const el=document.getElementById('ma_cult');if(el)el.focus()},30);return}
   if(a==='medit'){state.mapEdit=state.mapEdit===k?null:k;state.mapDelArea=null;return render()}
+  if(a==='mhempty'){const m=ensureMap(z);const hh=+k;m.emptyH=m.emptyH||{};if(m.emptyH[hh])delete m.emptyH[hh];else m.emptyH[hh]=1;const on=!!m.emptyH[hh];if(!Object.keys(m.emptyH).length)delete m.emptyH;saveMap(z);toast(on?'House '+hh+' marked empty. Its cards are skipped on walks.':'House '+hh+' unmarked');return render()}
+  if(a==='mempty'){state.mapPaint=true;state.mapBrush='x';state.mapMode=state.mapMode||'cell';state.mapInfo=null;state.boxAnchor=null;return render()}
   if(a==='mbrush'){state.mapBrush=k;if(!state.mapPaint){state.mapPaint=true;state.mapMode=state.mapMode||'cell';state.mapInfo=null}state.boxAnchor=null;return render()}
-  if(a==='mpaint'){state.mapPaint=!state.mapPaint;state.boxAnchor=null;state.mapInfo=null;if(state.mapPaint){const m=maps[z];if(m&&m.areas.length&&!m.areas.some(x=>x.id===state.mapBrush))state.mapBrush=m.areas[0].id}return render()}
+  if(a==='mpaint'){state.mapPaint=!state.mapPaint;state.boxAnchor=null;state.mapInfo=null;if(state.mapPaint){const m=maps[z];if(m&&m.areas.length&&state.mapBrush!=='x'&&!m.areas.some(x=>x.id===state.mapBrush))state.mapBrush=m.areas[0].id}return render()}
   if(a==='mmode'){state.mapMode=k;state.boxAnchor=null;return render()}
   if(a==='mcell'){const h=+b.dataset.h,t=+b.dataset.t,q=+b.dataset.s;if(state.mapPaint)return mapPaintAt(z,h,t,q);const MV=state.mapMoveCard;if(MV&&MV.z===z){if(MV.h!==h){toast('Pick a spot in House '+MV.h+'.');return}const m=ensureMap(z);fixCards35(m);m.cards=m.cards||{};const cur=cardPositions(m,h).map(p=>({t:p.t,s:p.s}));cur[MV.i]={t,s:q};m.cards[h]=cur;saveMap(z);state.mapMoveCard=null;state.mapInfo={z,h,card:MV.i};toast('Card C'+(MV.i+1)+' moved');return render()}state.mapInfo={z,h,t,s:q};return render()}
   if(a==='mundo'){for(let i=mapUndo.length-1;i>=0;i--){if(mapUndo[i].z===z){const u=mapUndo.splice(i,1)[0];ensureMap(z).cells=JSON.parse(u.cells);saveMap(z);toast('Undone');break}}state.boxAnchor=null;return render()}
@@ -1691,7 +1721,7 @@ function viewCalendar(){
   h+='<div class="cal-day"><div class="cd-hd"><b>'+esc(fmtDay(sd))+', '+sd.getFullYear()+'</b><span class="note">Week '+isoWeek(sel)+' · '+seasonOf(sel).name+'</span></div>';
   if(se)h+='<div class="cal-item">'+seasonSvg(se)+'<span><b>First day of '+se.toLowerCase()+'</b><small>'+esc(seasonStarts(+sel.slice(0,4))[SEASON_NAMES.indexOf(se)].toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}))+' '+(se==='Spring'||se==='Fall'?'equinox':'solstice')+'</small></span></div>';
   hs.forEach(x=>h+='<div class="cal-item"><span class="hflag '+x.c+'">'+x.c+'</span><span><b>'+esc(x.name)+'</b><small>'+esc(x.note)+'</small></span></div>');
-  ws.forEach(([id,w])=>{const p=walkProgress(w),tt=walkTotals(w);h+='<button class="cal-item link" data-act="open" data-id="'+esc(id)+'"><span class="z">Z'+w.zone+'</span><span><b>Scout walk · '+areaOf(w.zone).n+' Zone '+w.zone+'</b><small>'+p.cards+'/'+cardsTotal(w.zone)+' cards · '+tt.catches+' caught · '+tt.findings+' plants flagged</small></span></button>'});
+  ws.forEach(([id,w])=>{const p=walkProgress(w),tt=walkTotals(w);h+='<button class="cal-item link" data-act="open" data-id="'+esc(id)+'"><span class="z">Z'+w.zone+'</span><span><b>Scout walk · '+areaOf(w.zone).n+' Zone '+w.zone+'</b><small>'+p.cards+'/'+walkCardsTotal(w)+' cards · '+tt.catches+' caught · '+tt.findings+' plants flagged</small></span></button>'});
   ss.forEach(([id,s])=>h+='<button class="cal-item link" data-act="sprayopen" data-id="'+esc(id)+'">'+dropSvg(s.method)+'<span><b>Spray · '+esc(s.product.name)+'</b><small>Zone'+(s.zones.length>1?'s ':' ')+s.zones.join(', ')+(s.time?' · '+esc(s.time):'')+'</small></span></button>');
   if(!se&&!hs.length&&!ws.length&&!ss.length)h+='<p class="note" style="margin:6px 0 0">Nothing logged on this day.</p>';
   h+='<button class="btn ghost" data-act="calstart" data-k="'+sel+'" style="margin-top:10px">Start a walk on this date</button></div>';
@@ -1754,7 +1784,7 @@ document.addEventListener('click',e=>{
   if(a==='mapbackcard')return go('card');
   if(a==='mapopen'){state.mapFrom=state.view==='walk'?'walk':state.view==='card'?'card':'home';state.mapZone=+b.dataset.k;state.mapHouse=b.dataset.h?+b.dataset.h:1;state.mapMoveCard=null;state.mapPaint=false;state.mapInfo=null;return go('map')}
   if(['mplantsedit','mplantscancel','mplantssave'].includes(a))return mapPlantsAction(a);
-  if(a.charAt(0)==='m'&&typeof mapAction==='function'&&['mhouse','mzoom','msetopen','maddarea','medit','mbrush','mpaint','mmode','mcell','mundo','mcolor','mdel','mdelno','mdelyes','mcopy','mclear','mconfirmno','mconfirmyes','mcard','mcardmove','mcardcancel','mcardwalk','mcardreset'].includes(a))return mapAction(a,b);
+  if(a.charAt(0)==='m'&&typeof mapAction==='function'&&['mhouse','mzoom','msetopen','maddarea','medit','mbrush','mpaint','mmode','mcell','mundo','mcolor','mdel','mdelno','mdelyes','mcopy','mclear','mconfirmno','mconfirmyes','mcard','mcardmove','mcardcancel','mcardwalk','mcardreset','mhempty','mempty'].includes(a))return mapAction(a,b);
   if(a==='alerts')return go('alerts');
   if(['alertopen','alertwalk','asnooze','adismiss'].includes(a))return alertAction(a,b);
   if(a==='notifyon')return enableReminders();
@@ -1818,7 +1848,7 @@ document.addEventListener('click',e=>{
     {const zr=zoneREI(z);if(zr.length)toast('Zone '+z+' is in a re-entry period until '+fmtWhen(zr[0].until)+'.')}
     state.startZone=z;state.startDate=d;const id=d+'_Z'+z;
     if(!walks[id]){walks[id]={zone:z,date:d,strain:((plantOn(z,d)||[])[1]||{}).cultivar||zoneMap[z]||null,createdAt:Date.now(),updatedAt:Date.now(),cards:{}};touch(id)}else saveLocal();
-    state.walkId=id;const nx=firstOpen(walks[id]);if(nx){state.card=nx;go('card')}else go('walk');return}
+    state.walkId=id;syncSkip(id);const nx=firstOpen(walks[id]);if(nx){state.card=nx;go('card')}else go('walk');return}
   if(a==='open'){state.walkId=b.dataset.id;return go('walk')}
   if(a==='card'){state.card=b.dataset.k;return go('card')}
   if(a==='nextopen'){const nx=firstOpen(w);if(nx){state.card=nx;go('card')}else toast('Every card in this walk is complete.');return}
@@ -1842,9 +1872,9 @@ document.addEventListener('click',e=>{
   if(a==='sev'){const pl=cd.p[b.dataset.k];pl.v=pl.v||{};pl.v[b.dataset.i]=+b.dataset.v;touch(state.walkId);render();return}
   if(a==='allclean'){let n=0;for(let p=1;p<=plantsFor(w.zone);p++){if(!plantDone(cd.p['P'+p])){cd.p['P'+p]={s:'clean'};n++}}if(n){touch(state.walkId);render()}toast(n?n+' plant'+(n===1?'':'s')+' marked clean':'All plants on this card are already checked');return}
   if(a==='prev'){const pv=prevCardKey(state.card);if(pv){state.card=pv;go('card')}return}
-  if(a==='next'){if(!cardDone(cd))toast('Card left unfinished. It stays dashed on the grid.');const nx=nextCardKey(state.card);if(nx){state.card=nx;go('card')}else go('walk');return}
+  if(a==='next'){if(!cardDone(cd)&&!skipSet(w).has(state.card))toast('Card left unfinished. It stays dashed on the grid.');const nx=nextCardKey(state.card);if(nx){state.card=nx;go('card')}else go('walk');return}
 });
-function firstOpen(w){for(let h=1;h<=housesFor(w.zone);h++)for(let c=1;c<=CARDS;c++)if(!cardDone(w.cards?.[key(h,c)],plantsFor(w.zone)))return key(h,c);return null}
+function firstOpen(w){const sk=skipSet(w);for(let h=1;h<=housesFor(w.zone);h++)for(let c=1;c<=CARDS;c++)if(!sk.has(key(h,c))&&!cardDone(w.cards?.[key(h,c)],plantsFor(w.zone)))return key(h,c);return null}
 
 document.addEventListener('change',e=>{
   const t=e.target;
