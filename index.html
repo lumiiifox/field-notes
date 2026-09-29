@@ -1431,7 +1431,7 @@ function codeText(a){if(!a||!a.codeType)return '';const t=a.codeType==='other'?(
 const MAP_SLOTS=8;
 const MAP_COLOR_NAMES=['Blue','Orange','Aqua','Yellow','Pink','Green','Violet','Red'];
 let mapUndo=[];
-function mapDefault(z){return{troughs:areaOf(z).k==='mother'?6:12,paired:areaOf(z).k!=='mother',sections:areaOf(z).k==='mother'?15:24,sv:2,ms15:1,plants:areaOf(z).k==='flower'?162000:0,areas:[],cells:{}}}
+function mapDefault(z){return{troughs:areaOf(z).k==='mother'?10:12,mt10:1,paired:areaOf(z).k!=='mother',sections:areaOf(z).k==='mother'?15:24,sv:2,ms15:1,plants:areaOf(z).k==='flower'?162000:0,areas:[],cells:{}}}
 function ensureMap(z){if(!maps[z])maps[z]=mapDefault(z);return maps[z]}
 function mapCells(m,h){const n=m.troughs*m.sections;let c=m.cells[h];if(!c||c.length!==n){c=(c||[]).slice(0,n);while(c.length<n)c.push('');m.cells[h]=c}return c}
 function saveMap(z){maps[z].updatedAt=Date.now();saveDoc('maps/'+z)}
@@ -1520,7 +1520,7 @@ function paintBar(m){if(!state.mapPaint)return '';const b=state.mapBrush;const m
    +'<div class="pb-foot"><span class="pb-hint">'+(mode==='box'&&state.boxAnchor?'Now tap the opposite corner.':MAP_HINT[mode])+'</span><button class="btn ghost" data-act="mundo"'+(mapUndo.some(u=>u.z===state.mapZone)?'':' disabled')+'>Undo</button><button class="btn primary" data-act="mpaint">Done</button></div></div></div>'}
 
 function viewMap(){
-  const z=state.mapZone=state.mapZone||state.startZone;if(maps[z]&&!maps[z].sv){if(maps[z].sections===10)resizeMap(z,maps[z].troughs,24);maps[z].sv=2;saveMap(z)}if(maps[z]&&maps[z].paired===undefined){if(areaOf(z).k==='mother'&&maps[z].troughs===12)resizeMap(z,6,maps[z].sections);maps[z].paired=areaOf(z).k!=='mother';saveMap(z)}if(maps[z]&&!maps[z].ms15){if(areaOf(z).k==='mother'&&maps[z].sections===24)resizeMap(z,maps[z].troughs,15);maps[z].ms15=1;saveMap(z)}const m=maps[z]||mapDefault(z);const H=housesFor(z);const ar=areaOf(z);
+  const z=state.mapZone=state.mapZone||state.startZone;if(maps[z]&&!maps[z].sv){if(maps[z].sections===10)resizeMap(z,maps[z].troughs,24);maps[z].sv=2;saveMap(z)}if(maps[z]&&maps[z].paired===undefined){if(areaOf(z).k==='mother'&&maps[z].troughs===12)resizeMap(z,10,maps[z].sections);maps[z].paired=areaOf(z).k!=='mother';saveMap(z)}if(maps[z]&&!maps[z].ms15){if(areaOf(z).k==='mother'&&maps[z].sections===24)resizeMap(z,maps[z].troughs,15);maps[z].ms15=1;saveMap(z)}if(maps[z]&&!maps[z].mt10){if(areaOf(z).k==='mother'&&maps[z].troughs===6)resizeMap(z,10,maps[z].sections);maps[z].mt10=1;saveMap(z)}const m=maps[z]||mapDefault(z);const H=housesFor(z);const ar=areaOf(z);
   if(!state.mapHouse||state.mapHouse>H)state.mapHouse=1;const hh=state.mapHouse;const st=mapStats(z,m);
   let h='<div class="field" style="margin-top:18px"><label for="map_zone">Zone</label><select id="map_zone">'+AREAS.map(a=>'<optgroup label="'+a.n+'">'+a.zones.map(q=>'<option value="'+q+'"'+(q===z?' selected':'')+'>Zone '+q+(maps[q]&&maps[q].areas.length?' · mapped':'')+'</option>').join('')+'</optgroup>').join('')+'</select></div>';
   h+='<p class="sub" style="margin-top:10px">'+ar.n+' · '+H+' houses × '+m.troughs+' troughs × '+m.sections+' sections'+'</p>'+plantsPanel(z,m,H);
@@ -1598,7 +1598,7 @@ function mapInput(t,changed){const z=state.mapZone;
     if(t.dataset.ma==='cultivar'&&changed){const prevN=ar.cultivar&&strainOf(ar.cultivar)?strainOf(ar.cultivar).n:null;ar.cultivar=t.value;const s=strainOf(t.value);if(s&&(/^Area \d+$/.test(ar.name)||ar.name===prevN))ar.name=s.n;saveMap(z);render();return}}
   if(t.dataset.mset&&changed){const m=ensureMap(z);const v=parseInt(t.value,10);
     if(t.dataset.mset==='plants'){m.plants=v>0?v:0;saveMap(z);return render()}
-    if(t.dataset.mset==='troughs'){const pd=m.paired!==false;let n=Math.max(pd?2:1,Math.min(24,v||(pd?12:6)));if(pd&&n%2)n+=1;resizeMap(z,n,m.sections);return render()}
+    if(t.dataset.mset==='troughs'){const pd=m.paired!==false;let n=Math.max(pd?2:1,Math.min(24,v||(pd?12:10)));if(pd&&n%2)n+=1;resizeMap(z,n,m.sections);return render()}
     if(t.dataset.mset==='paired'){m.paired=t.checked;if(m.paired&&m.troughs%2)resizeMap(z,m.troughs+1,m.sections);saveMap(z);return render()}
     if(t.dataset.mset==='sections'){const n=Math.max(1,Math.min(40,v||24));resizeMap(z,m.troughs,n);return render()}}
 }
