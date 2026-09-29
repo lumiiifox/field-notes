@@ -25,6 +25,7 @@
   --h0:#E6F1E1; --h1:#FFF0A6; --h2:#FFC96B; --h3:#F48C5E; --h4:#DE5470;
   --h0-ink:#5B7A60; --h1-ink:#4A3D00; --h2-ink:#4A2E00; --h3-ink:#FFFFFF; --h4-ink:#FFFFFF;
   --ok:#3E8E4D; --warn:#D07A1C; --bad:#C9435E;
+  --m1:#2a78d6; --m2:#eb6834; --m3:#1baf7a; --m4:#eda100; --m5:#e87ba4; --m6:#008300; --m7:#4a3aa7; --m8:#e34948;
   --shadow:0 2px 0 rgba(46,95,55,.08),0 6px 18px rgba(46,95,55,.07);
   --display:"Fredoka","Nunito","Arial Rounded MT Bold",system-ui,sans-serif;
   --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -40,6 +41,7 @@
     --h0:#1F2F23; --h1:#57502A; --h2:#8A6426; --h3:#A6512F; --h4:#B23B55;
     --h0-ink:#9BB99F; --h1-ink:#F7EDBC; --h2-ink:#FFF1D2; --h3-ink:#FFFFFF; --h4-ink:#FFFFFF;
     --ok:#7FD28C; --warn:#EFA84A; --bad:#F27D95;
+   --m1:#3987e5; --m2:#d95926; --m3:#199e70; --m4:#c98500; --m5:#d55181; --m6:#008300; --m7:#9085e9; --m8:#e66767;
     --shadow:0 2px 0 rgba(0,0,0,.25),0 6px 18px rgba(0,0,0,.2);
   }
 }
@@ -52,6 +54,7 @@
   --h0:#1F2F23; --h1:#57502A; --h2:#8A6426; --h3:#A6512F; --h4:#B23B55;
   --h0-ink:#9BB99F; --h1-ink:#F7EDBC; --h2-ink:#FFF1D2; --h3-ink:#FFFFFF; --h4-ink:#FFFFFF;
   --ok:#7FD28C; --warn:#EFA84A; --bad:#F27D95;
+   --m1:#3987e5; --m2:#d95926; --m3:#199e70; --m4:#c98500; --m5:#d55181; --m6:#008300; --m7:#9085e9; --m8:#e66767;
   --shadow:0 2px 0 rgba(0,0,0,.25),0 6px 18px rgba(0,0,0,.2);
 }
 *{box-sizing:border-box}
@@ -309,6 +312,56 @@ label.btn{cursor:pointer}
 .ri-row:last-child{border-bottom:0}
 .ri-row label{font-weight:700;font-size:14px}
 .ri-row input{min-height:42px;border:2px solid var(--line);border-radius:12px;background:var(--bg);text-align:center;font-family:var(--mono);font-size:16px;width:100%}
+.map-panel{background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:10px;box-shadow:var(--shadow);margin-top:10px}
+.map-panel.scroll{overflow-x:auto}
+.ov-svg,.house-svg{display:block;width:100%;height:auto}
+.house-svg.zoom{width:700px;max-width:none}
+.ovh{cursor:pointer}
+.mt{font-family:var(--display);font-weight:600;font-size:9.5px;fill:var(--muted)}
+.mlt{font-family:var(--body);font-weight:700;font-size:9px;fill:var(--ink)}
+.mc{cursor:pointer}
+.area-list{padding:4px 14px}
+.area-row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:2px dashed var(--line)}
+.area-list>.area-row:last-child{border-bottom:0}
+.ar-main{display:flex;gap:10px;align-items:center;flex:1;min-width:0;background:none;border:0;padding:0;text-align:left;color:inherit}
+.sw{width:28px;height:28px;border-radius:9px;flex:none;box-shadow:inset 0 0 0 2px rgba(0,0,0,.08)}
+.sw0{width:28px;height:28px;border-radius:9px;flex:none;background:var(--sunk);border:2px dashed var(--line)}
+.ar-t{display:flex;flex-direction:column;min-width:0}
+.ar-t b{font-family:var(--display);font-weight:600;font-size:17px}
+.ar-t small{color:var(--muted);font-size:12.5px}
+.area-row.on{background:var(--leaf-soft);margin:0 -14px;padding-left:14px;padding-right:14px}
+.ar-edit{min-height:38px;padding:0 12px;font-size:14px}
+.area-ed{padding:10px 0 14px;border-bottom:2px dashed var(--line);display:flex;flex-direction:column;gap:12px}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.swatches button{width:38px;height:38px;border-radius:11px;border:3px solid var(--surface);box-shadow:0 0 0 2px var(--line)}
+.swatches button.on{box-shadow:0 0 0 3px var(--ink)}
+.map-info{margin-top:10px;background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:10px 12px;font-size:14px}
+.map-set summary{cursor:pointer;font-family:var(--display);font-weight:600;color:var(--green);font-size:17px;margin:26px 0 10px}
+.paintbar{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--surface);border-top:2px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));box-shadow:0 -6px 18px rgba(0,0,0,.1)}
+.pb-in{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:8px}
+.pb-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.pb-row button{flex:none;min-height:40px;padding:0 12px;border-radius:999px;border:2px solid var(--line);background:var(--bg);font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:6px;color:inherit}
+.pb-row.brushes button.on{border-color:var(--ink);background:var(--surface);box-shadow:inset 0 0 0 1px var(--ink)}
+.pb-row.modes button.on{background:var(--green);border-color:var(--green);color:var(--green-ink)}
+.pb-row button i{width:16px;height:16px;border-radius:5px;display:inline-block;flex:none}
+.pb-row button i.er{background:repeating-linear-gradient(45deg,var(--sunk) 0 3px,var(--surface) 3px 6px);border:1.5px solid var(--muted)}
+.pb-foot{display:flex;gap:8px;align-items:center}
+.pb-hint{flex:1;font-size:12.5px;color:var(--muted);line-height:1.3}
+.pb-foot .btn{min-height:40px;padding:0 14px;font-size:15px}
+body.painting #app{padding-bottom:190px}
+body.painting .toast{bottom:calc(196px + env(safe-area-inset-bottom,0px))}
+.pb-row.modes{display:grid;grid-template-columns:repeat(5,1fr);overflow:visible}
+.pb-row.modes button{padding:0 4px;font-size:13px;justify-content:center;min-width:0}
+.plants-box{display:flex;gap:12px;align-items:center;background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:12px 14px;margin-top:10px;box-shadow:var(--shadow)}
+.plants-box.edit{align-items:stretch}
+.pbx-t{flex:1;min-width:0}
+.pbx-num{font-family:var(--mono);font-size:26px;font-variant-numeric:tabular-nums;line-height:1.1}
+.mpd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.mpd-grid .field{min-width:0}
+.map-line{display:flex;gap:10px;align-items:center;background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:10px 14px;margin-top:10px;font-size:14px}
+.map-line .dots{display:flex;gap:3px;flex:none}
+.map-line .dots i{width:12px;height:12px;border-radius:4px;display:block}
+.map-line span.t{flex:1}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -400,7 +453,8 @@ const STRAINS=[
 function strainOf(k){return STRAINS.find(s=>s.k===k)||null}
 function itemName(k){const i=PLANT_ITEMS.find(x=>x.k===k);return i?i.n:k}
 function strainSelect(id,sel,attrs){return '<select id="'+id+'" '+(attrs||'')+'><option value="">Not set</option>'+STRAINS.map(s=>'<option value="'+s.k+'"'+(s.k===sel?' selected':'')+'>'+esc(s.n)+'</option>').join('')+'</select>'}
-function zonesFor(k){return ZONES.filter(z=>zoneMap[z]===k)}
+function zonesFor(k){return ZONES.filter(z=>zoneMap[z]===k||(typeof maps!=='undefined'&&maps[z]&&mapCultivars(z).some(a=>a.cultivar===k)))}
+const MAPICON='<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 4v16M16 4v16" stroke="currentColor" stroke-width="2"/><rect x="4.5" y="5.5" width="2.5" height="7" fill="var(--m2)"/><rect x="9.5" y="5.5" width="5" height="13" fill="var(--m1)"/><rect x="17" y="11" width="2.5" height="7.5" fill="var(--m3)"/></svg>';
 function strainCardText(s){
   let t=s.n+(s.aka?' ('+s.aka+')':'')+'\nType: '+s.type+'\nLineage: '+s.lineage+'\nBreeder: '+s.breeder+'\nFlowering: '+s.flower+'\nTHC: '+s.thc+'\nTerpenes: '+s.terps.join(', ');
   if(s.grow.length)t+='\nGrow notes: '+s.grow.join('; ');
@@ -417,7 +471,7 @@ let walks={};
 let pending=new Set();
 const timers={}, inflight={}, again={};
 let firstServerSnap=true;
-let strainNotes={}, zoneMap={}, sprays={}, products=[], plantings={}, alertCfg={dismissed:{},snooze:{},intervals:{}};
+let strainNotes={}, zoneMap={}, sprays={}, products=[], plantings={}, alertCfg={dismissed:{},snooze:{},intervals:{}}, maps={};
 const docPending={}, docVer={};
 const state={view:'home',walkId:null,card:null,metric:'cardTotal',trendZone:null,confirmDel:false,startZone:ZONE_MIN,startDate:today()};
 
@@ -466,12 +520,12 @@ async function push(id){
 }
 function flushPending(){[...pending].forEach(id=>push(id));Object.keys(docPending).forEach(p=>pushDoc(p))}
 function saveDoc(path){docPending[path]=true;docVer[path]=(docVer[path]||0)+1;saveLocal();clearTimeout(timers[path]);timers[path]=setTimeout(()=>pushDoc(path),250);updateSync()}
-function docBody(path){if(path==='config/alerts')return Object.assign(clone(alertCfg),{updatedAt:Date.now()});if(path.startsWith('plantings/')){const x=plantings[path.slice(10)];return x?clone(x):null}if(path==='config/products')return{list:products,updatedAt:Date.now()};if(path.startsWith('sprays/')){const x=sprays[path.slice(7)];return x?clone(x):null}if(path==='config/zones')return{map:zoneMap,updatedAt:Date.now()};return{notes:strainNotes[path.split('/')[1]]||'',updatedAt:Date.now()}}
+function docBody(path){if(path.startsWith('maps/')){const x=maps[path.slice(5)];return x?clone(x):null}if(path==='config/alerts')return Object.assign(clone(alertCfg),{updatedAt:Date.now()});if(path.startsWith('plantings/')){const x=plantings[path.slice(10)];return x?clone(x):null}if(path==='config/products')return{list:products,updatedAt:Date.now()};if(path.startsWith('sprays/')){const x=sprays[path.slice(7)];return x?clone(x):null}if(path==='config/zones')return{map:zoneMap,updatedAt:Date.now()};return{notes:strainNotes[path.split('/')[1]]||'',updatedAt:Date.now()}}
 async function pushDoc(path){
   if(!db){updateSync();return}
   if(inflight[path]){again[path]=true;return}
   inflight[path]=true;const v=docVer[path];
-  try{const body=docBody(path);if(body===null)await db.doc(path).delete();else await db.doc(path).set(body);if(docVer[path]===v){delete docPending[path];if(body===null&&path.startsWith('sprays/'))delete sprays[path.slice(7)];if(body===null&&path.startsWith('plantings/'))delete plantings[path.slice(10)];saveLocal()}}
+  try{const body=docBody(path);if(body===null)await db.doc(path).delete();else await db.doc(path).set(body);if(docVer[path]===v){delete docPending[path];if(body===null&&path.startsWith('sprays/'))delete sprays[path.slice(7)];if(body===null&&path.startsWith('plantings/'))delete plantings[path.slice(10)];if(body===null&&path.startsWith('maps/'))delete maps[path.slice(5)];saveLocal()}}
   catch(e){if(e&&e.code==='invalid_argument')toast('You can view these notes but not change them.');else if(e&&e.code==='quota_exceeded')toast('Storage is full.');else setTimeout(()=>pushDoc(path),8000+Math.random()*4000)}
   finally{inflight[path]=false;if(again[path]){again[path]=false;pushDoc(path)}updateSync()}
 }
@@ -503,6 +557,7 @@ function renderTop(){
   else if(state.view==='plantings')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Plantings</div>';
   else if(state.view==='plantform')left='<button class="back" data-act="plantings" aria-label="Back to plantings">‹</button><div class="crumb">'+(state.plantId?'Edit planting':'Log a planting')+'</div>';
   else if(state.view==='alerts')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Rechecks</div>';
+  else if(state.view==='map')left='<button class="back" data-act="'+(state.mapFrom==='walk'?'walk':'home')+'" aria-label="Back">‹</button><div class="crumb">Zone '+state.mapZone+' map</div>';
   else if(state.view==='sprays')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Spray log</div>';
   else if(state.view==='sprayform')left='<button class="back" data-act="sprays" aria-label="Back to spray log">‹</button><div class="crumb">'+(state.sprayId?'Edit spray':'Log a spray')+'</div>';
   else if(state.view==='guide')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Pest guide</div>';
@@ -521,7 +576,7 @@ function viewHome(){
   else{AREAS.concat([{k:'other',n:'Other'}]).forEach(a=>{const rows=list.filter(([,w])=>areaOf(w.zone).k===a.k);if(!rows.length)return;
     h+='<div class="area-hd '+a.k+'">'+a.n+'</div><div class="list">';rows.slice(0,30).forEach(([id,w])=>{const p=walkProgress(w),tt=walkTotals(w);const pct=Math.round(p.plants/zoneTotal(w.zone)*100);
     h+='<button class="walk" data-act="open" data-id="'+esc(id)+'"><span class="z">Z'+w.zone+'</span><span class="d">'+esc(fmtDate(w.date))+'</span><span class="pct">'+pct+'%</span><span class="m">'+(strainOf(w.strain)?esc(strainOf(w.strain).n)+' · ':'')+p.cards+'/'+cardsTotal(w.zone)+' cards · '+tt.catches+' caught · '+tt.findings+' plants flagged'+(pending.has(id)?' · unsaved':'')+'</span></button>'});h+='</div>'})}
-  h+='<div class="home-links"><button class="btn sticky" data-act="guidehome" >Pest guide</button><button class="btn sprayb" data-act="sprays">Spray log</button><button class="btn plantb" data-act="plantings">Plantings</button><button class="btn" data-act="strains">'+leafSvg()+'Cultivars</button><button class="btn" data-act="trends"'+(list.length?'':' disabled')+'>Trends</button><button class="btn" data-act="alerts">Rechecks</button></div>';
+  h+='<div class="home-links"><button class="btn plantb" data-act="map" style="grid-column:1/-1">'+MAPICON+'Zone maps</button><button class="btn sticky" data-act="guidehome" >Pest guide</button><button class="btn sprayb" data-act="sprays">Spray log</button><button class="btn plantb" data-act="plantings">Plantings</button><button class="btn" data-act="strains">'+leafSvg()+'Cultivars</button><button class="btn" data-act="trends"'+(list.length?'':' disabled')+'>Trends</button><button class="btn" data-act="alerts">Rechecks</button></div>';
   const nData=Object.values(walks).filter(Boolean).length+Object.values(sprays).filter(Boolean).length;
   if(nData&&(!prefs.lastBackup||Date.now()-prefs.lastBackup>7*864e5))h+='<div class="rule" style="margin-top:14px"><b>'+(prefs.lastBackup?'Last backup was '+Math.floor((Date.now()-prefs.lastBackup)/864e5)+' days ago.':'No backup yet.')+'</b> Your records live only on this phone. <button class="linkish" data-act="backup">Save a backup now</button></div>';
   h+='<div style="margin-top:10px"><button class="btn ghost block" data-act="settings">Backup &amp; lock</button></div>';
@@ -534,6 +589,7 @@ function viewWalk(){
   let h='<div class="stats"><div class="stat"><div class="n">'+p.cards+'<small style="font-size:14px;color:var(--muted)">/'+cardsTotal(w.zone)+'</small></div><div class="l">Cards done</div></div><div class="stat"><div class="n">'+tt.catches+'</div><div class="l">Card catches</div></div><div class="stat"><div class="n">'+tt.findings+'</div><div class="l">Plants flagged</div></div></div>';
   h+='<div class="bar" aria-label="Plants checked"><span style="width:'+(p.plants/zoneTotal(w.zone)*100)+'%"></span></div><p class="note" style="margin-top:6px">'+p.plants+' of '+zoneTotal(w.zone)+' plants checked · '+plantsFor(w.zone)+' per card</p>';
   const st=strainOf(w.strain);
+  {const mc=maps[w.zone]?mapCultivars(w.zone):[];if(mc.length)h+='<div class="map-line"><span class="dots">'+mc.map(a=>'<i style="background:var(--m'+a.color+')"></i>').join('')+'</span><span class="t">'+mc.map(a=>esc(a.name)+' '+a.pct+'%').join(' · ')+'</span><button class="linkish" data-act="mapopen" data-k="'+w.zone+'">Map</button></div>'}
   h+='<div class="strain-pick"><label for="wstrain">Cultivar</label>'+strainSelect('wstrain',w.strain||'')+'</div>';
   if(st&&st.watch.length)h+='<div class="watch"><b>Watch for in '+esc(st.n)+':</b> '+st.watch.map(x=>esc(itemName(x.i))).join(', ')+'. <button class="linkish" data-act="strain" data-k="'+st.k+'">Details</button></div>';
   {const za=computeAlerts().filter(a=>a.zone===w.zone&&a.date<w.date);if(za.length)h+='<div class="watch"><b>Rechecks for this zone:</b>'+za.map(a=>'<div style="margin-top:4px">'+esc(itemName(a.k))+' ('+SEV[a.sev]+', '+esc(fmtShort(a.date))+') on '+[...new Set(a.locs.map(l=>l.split(' ')[0]))].map(ck=>'<button class="linkish" data-act="card" data-k="'+ck+'">'+ck.replace('C',' C')+'</button>').join(' ')+'</div>').join('')+'</div>'}
@@ -1066,8 +1122,8 @@ const IDB={h:null,
   clearData(){return new Promise((res,rej)=>{const t=IDB.h.transaction('kv','readwrite');const s=t.objectStore('kv');const c=s.openCursor();c.onsuccess=()=>{const x=c.result;if(x){if(!String(x.key).startsWith('meta/'))x.delete();x.continue()}};t.oncomplete=res;t.onerror=()=>rej(t.error)})}
 };
 const localDb={doc(path){return{set:v=>IDB.put(path,v),delete:()=>IDB.del(path)}}};
-function applyAll(all){walks={};sprays={};plantings={};alertCfg={dismissed:{},snooze:{},intervals:{}};strainNotes={};zoneMap={};products=[];
-  Object.entries(all).forEach(([k,v])=>{if(k.startsWith('walks/'))walks[k.slice(6)]=v;else if(k.startsWith('sprays/'))sprays[k.slice(7)]=v;else if(k.startsWith('plantings/'))plantings[k.slice(10)]=v;else if(k.startsWith('strains/'))strainNotes[k.slice(8)]=(v&&v.notes)||'';else if(k==='config/zones')zoneMap=(v&&v.map)||{};else if(k==='config/products')products=(v&&v.list)||[];else if(k==='config/alerts')alertCfg=Object.assign({dismissed:{},snooze:{},intervals:{}},v||{})})}
+function applyAll(all){walks={};sprays={};plantings={};maps={};alertCfg={dismissed:{},snooze:{},intervals:{}};strainNotes={};zoneMap={};products=[];
+  Object.entries(all).forEach(([k,v])=>{if(k.startsWith('walks/'))walks[k.slice(6)]=v;else if(k.startsWith('sprays/'))sprays[k.slice(7)]=v;else if(k.startsWith('plantings/'))plantings[k.slice(10)]=v;else if(k.startsWith('maps/'))maps[k.slice(5)]=v;else if(k.startsWith('strains/'))strainNotes[k.slice(8)]=(v&&v.notes)||'';else if(k==='config/zones')zoneMap=(v&&v.map)||{};else if(k==='config/products')products=(v&&v.list)||[];else if(k==='config/alerts')alertCfg=Object.assign({dismissed:{},snooze:{},intervals:{}},v||{})})}
 
 /* file saving: share sheet on phones, download elsewhere */
 const fileSaver={async save({filename,data,type}){
@@ -1077,7 +1133,7 @@ const fileSaver={async save({filename,data,type}){
   const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);return{status:'saved'}}};
 
 /* backup and restore */
-function backupPayload(){return JSON.stringify({app:'zone-scout',format:1,exportedAt:new Date().toISOString(),data:{walks,sprays,plantings,strainNotes,zoneMap,products,alertCfg}},null,1)}
+function backupPayload(){return JSON.stringify({app:'zone-scout',format:1,exportedAt:new Date().toISOString(),data:{walks,sprays,plantings,maps,strainNotes,zoneMap,products,alertCfg}},null,1)}
 async function exportBackup(){const name='zone-scout-backup-'+today()+'.json';
   try{await fileSaver.save({filename:name,data:backupPayload(),type:'application/json'});prefs.lastBackup=Date.now();savePrefs();toast('Backup saved: '+name);render()}
   catch(e){if(e&&e.code==='declined')return;toast('Backup failed. Try again.')}}
@@ -1087,6 +1143,7 @@ async function doRestore(){const o=state.restore&&state.restore.o;if(!o)return;c
     for(const [id,w] of Object.entries(d.walks||{}))if(w)await IDB.put('walks/'+id,w);
     for(const [id,s] of Object.entries(d.sprays||{}))if(s)await IDB.put('sprays/'+id,s);
     for(const [id,p] of Object.entries(d.plantings||{}))if(p)await IDB.put('plantings/'+id,p);
+    for(const [z,m] of Object.entries(d.maps||{}))if(m)await IDB.put('maps/'+z,m);
     for(const [k,n] of Object.entries(d.strainNotes||{}))if(n)await IDB.put('strains/'+k,{notes:n,updatedAt:Date.now()});
     await IDB.put('config/zones',{map:d.zoneMap||{},updatedAt:Date.now()});await IDB.put('config/products',{list:d.products||[],updatedAt:Date.now()});await IDB.put('config/alerts',d.alertCfg||{dismissed:{},snooze:{},intervals:{}});
     applyAll(await IDB.all());state.restore=null;toast('Backup restored');go('home')}
@@ -1312,10 +1369,166 @@ function notifyPanel(){const sup='Notification' in window;const perm=sup?Notific
   else if(perm==='denied')h+='<p class="note" style="margin:0">Notifications are blocked for Zone Scout. Allow them in your phone’s settings for the app, then come back here.</p>';
   else h+='<p class="note" style="margin-top:0">Get a phone notification when a zone is due for a recheck.</p><button class="btn primary block" data-act="notifyon">Turn on reminders</button>';
   return h+'</div>'}
+/* ---------- zone maps ---------- */
+const MAP_SLOTS=8;
+const MAP_COLOR_NAMES=['Blue','Orange','Aqua','Yellow','Pink','Green','Violet','Red'];
+let mapUndo=[];
+function mapDefault(z){return{troughs:12,sections:24,sv:2,plants:areaOf(z).k==='flower'?162000:0,areas:[],cells:{}}}
+function ensureMap(z){if(!maps[z])maps[z]=mapDefault(z);return maps[z]}
+function mapCells(m,h){const n=m.troughs*m.sections;let c=m.cells[h];if(!c||c.length!==n){c=(c||[]).slice(0,n);while(c.length<n)c.push('');m.cells[h]=c}return c}
+function saveMap(z){maps[z].updatedAt=Date.now();saveDoc('maps/'+z)}
+function housesText(arr){if(!arr.length)return '';const out=[];let a=arr[0],b=arr[0];for(let i=1;i<=arr.length;i++){if(arr[i]===b+1){b=arr[i];continue}out.push(a===b?'H'+a:'H'+a+'–H'+b);a=b=arr[i]}return out.join(', ')}
+function fmtPlants(n){const r=n<1000?Math.round(n/10)*10:Math.round(n/100)*100;return '≈ '+r.toLocaleString()}
+function mapTotalPlants(m,H){if(m.plantsMode==='house'&&m.housePlants){let s=0;for(let h=1;h<=H;h++)s+=+m.housePlants[h]||0;return s}return +m.plants||0}
+function housePlantsOf(m,h,H){if(m.plantsMode==='house'&&m.housePlants)return +m.housePlants[h]||0;return m.plants>0?m.plants/H:0}
+function mapStats(z,m){m=m||maps[z];if(!m)return null;const H=housesFor(z),T=m.troughs,S=m.sections,total=H*T*S;const cnt={},hs={},pl={};
+  for(let h=1;h<=H;h++){const c=m.cells[h]||[];const hp=housePlantsOf(m,h,H)/(T*S);for(let i=0;i<T*S;i++){const id=c[i]||'';if(id){cnt[id]=(cnt[id]||0)+1;pl[id]=(pl[id]||0)+hp;(hs[id]=hs[id]||new Set()).add(h)}}}
+  const tp=mapTotalPlants(m,H);const ppc=tp>0?tp/total:0;
+  const areas=m.areas.map(a=>Object.assign({},a,{cells:cnt[a.id]||0,pct:total?Math.round((cnt[a.id]||0)/total*100):0,plants:pl[a.id]||0,houses:[...(hs[a.id]||[])].sort((x,y)=>x-y)}));
+  const mapped=areas.reduce((s,a)=>s+a.cells,0);const mappedPl=areas.reduce((s,a)=>s+a.plants,0);
+  return{total,ppc,tp,areas,mapped,unmapped:total-mapped,unmappedPlants:Math.max(0,tp-mappedPl),H,T,S}}
+function plantsPanel(z,m,H){const tot=mapTotalPlants(m,H);const d=state.mapPlantsDraft;
+  if(!d||d.z!==z)return '<div class="plants-box"><div class="pbx-t"><div class="pbx-num">'+(tot?Math.round(tot).toLocaleString():'Not set')+'</div><div class="note">Plants in Zone '+z+(m.plantsMode==='house'?' · counted per house':'')+(m.plantsUpdated?' · updated '+esc(fmtShort(m.plantsUpdated)):'')+'</div></div><button class="btn" data-act="mplantsedit">'+(tot?'Change':'Set count')+'</button></div>';
+  const byH=d.mode==='house';let sum=0;if(byH)for(let h=1;h<=H;h++)sum+=+d.houses[h]||0;
+  let h='<div class="plants-box edit"><div style="flex:1">';
+  if(!byH)h+='<div class="field"><label for="mpd_total">Plants in Zone '+z+'</label><input id="mpd_total" type="number" inputmode="numeric" min="0" step="1" data-mpd="total" value="'+esc(d.total)+'" placeholder="e.g. 162000"></div>';
+  else h+='<div class="mpd-grid">'+range(1,H).map(n=>'<div class="field"><label for="mpd_h'+n+'">House '+n+'</label><input id="mpd_h'+n+'" type="number" inputmode="numeric" min="0" step="1" data-mpd="h'+n+'" value="'+esc(d.houses[n]==null?'':d.houses[n])+'"></div>').join('')+'</div><p class="note" style="margin:8px 0 0">Zone total: <b id="mpd_sum">'+sum.toLocaleString()+'</b></p>';
+  h+='<label class="check"><input type="checkbox" data-mpd="mode"'+(byH?' checked':'')+'> Count each house separately</label><p class="note" style="margin:6px 0 0">Area plant counts update from this. Count houses separately if the move to flower left some houses fuller than others.</p><div class="row" style="margin-top:10px"><button class="btn primary" data-act="mplantssave">Save count</button><button class="btn ghost" data-act="mplantscancel">Cancel</button></div></div></div>';
+  return h}
+function mapPlantsAction(a){const z=state.mapZone;const H=housesFor(z);
+  if(a==='mplantsedit'){const m=maps[z]||mapDefault(z);const tot=mapTotalPlants(m,H);const houses={};for(let h=1;h<=H;h++)houses[h]=m.plantsMode==='house'&&m.housePlants?(m.housePlants[h]||0):(tot?Math.round(tot/H):'');state.mapPlantsDraft={z,mode:m.plantsMode==='house'?'house':'zone',total:tot?Math.round(tot):'',houses};render();setTimeout(()=>{const el=document.getElementById(state.mapPlantsDraft.mode==='house'?'mpd_h1':'mpd_total');if(el){el.focus();el.select&&el.select()}},30);return}
+  if(a==='mplantscancel'){state.mapPlantsDraft=null;return render()}
+  if(a==='mplantssave'){const d=state.mapPlantsDraft;if(!d)return;const m=ensureMap(z);
+    if(d.mode==='house'){const hp={};let bad=false;for(let h=1;h<=H;h++){const v=parseInt(d.houses[h],10);if(!(v>=0)){bad=true;break}hp[h]=v}if(bad){toast('Enter a plant count for every house, 0 or more.');return}m.plantsMode='house';m.housePlants=hp;m.plants=Object.values(hp).reduce((x,y)=>x+y,0)}
+    else{const v=parseInt(d.total,10);if(!(v>=0)){toast('Enter the number of plants, 0 or more.');return}m.plantsMode='zone';m.plants=v;delete m.housePlants}
+    m.plantsUpdated=today();saveMap(z);state.mapPlantsDraft=null;toast('Plant count saved: '+mapTotalPlants(m,H).toLocaleString());return render()}}
+function mpdInput(t){const d=state.mapPlantsDraft;if(!d)return;const f=t.dataset.mpd;
+  if(f==='mode'){const H=housesFor(d.z);if(t.checked){d.mode='house';const tot=parseInt(d.total,10)||0;for(let h=1;h<=H;h++)if(d.houses[h]===''||d.houses[h]==null)d.houses[h]=tot?Math.round(tot/H):''}else{d.mode='zone';let s=0;for(let h=1;h<=H;h++)s+=parseInt(d.houses[h],10)||0;if(s)d.total=s}render();return}
+  if(f==='total'){d.total=t.value;return}
+  if(f.charAt(0)==='h'){d.houses[+f.slice(1)]=t.value;const H=housesFor(d.z);let s=0;for(let h=1;h<=H;h++)s+=parseInt(d.houses[h],10)||0;const el=document.getElementById('mpd_sum');if(el)el.textContent=s.toLocaleString()}}
+function nextSlot(m){const used=new Set(m.areas.map(a=>a.color));for(let i=1;i<=MAP_SLOTS;i++)if(!used.has(i))return i;return (m.areas.length%MAP_SLOTS)+1}
+function mapCultivars(z){const st=mapStats(z);if(!st)return [];return st.areas.filter(a=>a.cells>0)}
+
+function overviewSvg(z,m){const H=housesFor(z),T=m.troughs,S=m.sections,P=Math.ceil(T/2);const W=340,g=8,hw=(W-(H-1)*g)/H,tp=15;const ch=Math.max(4,Math.min(8,80/S));const Hh=tp+S*ch+4;const pg=1.6;const tw=(hw-(P-1)*pg)/T;const col={};m.areas.forEach(a=>col[a.id]=a.color);
+  let s='<svg class="ov-svg" viewBox="0 0 '+W+' '+Hh.toFixed(1)+'" role="img" aria-label="Overview of Zone '+z+'">';
+  for(let h=1;h<=H;h++){const x0=(h-1)*(hw+g);const c=m.cells[h]||[];const cur=(state.mapHouse||1)===h;
+    s+='<g data-act="mhouse" data-k="'+h+'" class="ovh"><rect x="'+(x0-3).toFixed(1)+'" y="0" width="'+(hw+6).toFixed(1)+'" height="'+Hh.toFixed(1)+'" rx="7" fill="'+(cur?'var(--leaf-soft)':'var(--surface)')+'" stroke="'+(cur?'var(--green)':'var(--line)')+'" stroke-width="1.5"/><text x="'+(x0+hw/2).toFixed(1)+'" y="11" text-anchor="middle" class="mt">H'+h+'</text>';
+    for(let t=0;t<T;t++){const x=x0+t*tw+Math.floor(t/2)*pg;for(let q=0;q<S;q++){const id=c[t*S+q]||'';s+='<rect x="'+x.toFixed(2)+'" y="'+(tp+(S-1-q)*ch).toFixed(2)+'" width="'+Math.max(.5,tw-.7).toFixed(2)+'" height="'+(ch-.8).toFixed(2)+'" fill="'+(id&&col[id]?'var(--m'+col[id]+')':'var(--sunk)')+'"/>'}}
+    s+='</g>'}
+  return s+'</svg>'}
+
+function houseSvg(z,m,h){const T=m.troughs,S=m.sections,P=Math.ceil(T/2);const L=24,Tp=20,W=334,pg=3,ag=12;const tw=(W-L-4-P*pg-(P-1)*ag)/T;const sh=S<=10?22:S<=14?18:S<=24?16:13;const Hh=Tp+S*sh+4;
+  const xOf=t=>L+Math.floor(t/2)*(2*tw+pg+ag)+(t%2)*(tw+pg);const c=mapCells(m,h);const col={};m.areas.forEach(a=>col[a.id]=a.color);
+  let s='<svg class="house-svg'+(state.mapZoom?' zoom':'')+'" viewBox="0 0 '+W+' '+Hh+'" role="img" aria-label="House '+h+' of Zone '+z+'">';
+  for(let t=0;t<T;t++)s+='<text x="'+(xOf(t)+tw/2).toFixed(1)+'" y="13" text-anchor="middle" class="mt">'+(t+1)+'</text>';
+  for(let q=0;q<S;q++)s+='<text x="'+(L-7)+'" y="'+(Tp+(S-1-q)*sh+sh/2+3.5).toFixed(1)+'" text-anchor="end" class="mt">'+(q+1)+'</text>';
+  for(let t=0;t<T;t++){const x=xOf(t);s+='<rect x="'+(x-1.5).toFixed(1)+'" y="'+(Tp-1.5)+'" width="'+(tw+3).toFixed(1)+'" height="'+(S*sh+1)+'" rx="5" fill="none" stroke="var(--line)" stroke-width="1.5"/>';
+    for(let q=0;q<S;q++){const id=c[t*S+q]||'';s+='<rect class="mc" data-act="mcell" data-h="'+h+'" data-t="'+t+'" data-s="'+q+'" x="'+x.toFixed(1)+'" y="'+(Tp+(S-1-q)*sh+1)+'" width="'+tw.toFixed(1)+'" height="'+(sh-2)+'" rx="3" fill="'+(id&&col[id]?'var(--m'+col[id]+')':'var(--sunk)')+'"/>'}}
+  const A=state.boxAnchor;if(A&&A.z===z&&A.h===h)s+='<rect x="'+(xOf(A.t)-2).toFixed(1)+'" y="'+(Tp+(S-1-A.s)*sh-1)+'" width="'+(tw+4).toFixed(1)+'" height="'+(sh+2)+'" rx="4" fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-dasharray="3 2" pointer-events="none"/>';
+  const I=state.mapInfo;if(I&&I.z===z&&I.h===h&&!state.mapPaint)s+='<rect x="'+(xOf(I.t)-2).toFixed(1)+'" y="'+(Tp+(S-1-I.s)*sh-1)+'" width="'+(tw+4).toFixed(1)+'" height="'+(sh+2)+'" rx="4" fill="none" stroke="var(--ink)" stroke-width="2.2" pointer-events="none"/>';
+  s+=mapLabels(m,c,xOf,tw,sh,Tp,W,L);
+  return s+'</svg>'}
+function mapLabels(m,c,xOf,tw,sh,Tp,W,L){const T=m.troughs,S=m.sections;const byId={};m.areas.forEach(a=>byId[a.id]=a);const seen=new Uint8Array(T*S);const best={};
+  for(let i=0;i<T*S;i++){const id=c[i];if(!id||seen[i]||!byId[id])continue;const cells=[];const st=[i];seen[i]=1;
+    while(st.length){const k=st.pop();cells.push(k);const t=Math.floor(k/S),q=k%S;[[t-1,q],[t+1,q],[t,q-1],[t,q+1]].forEach(([tt,qq])=>{if(tt<0||tt>=T||qq<0||qq>=S)return;const kk=tt*S+qq;if(!seen[kk]&&c[kk]===id){seen[kk]=1;st.push(kk)}})}
+    if(!best[id]||cells.length>best[id].length)best[id]=cells}
+  let out='';Object.entries(best).forEach(([id,cells])=>{if(cells.length<2)return;const a=byId[id];
+    let cx=0,cy=0;cells.forEach(k=>{cx+=Math.floor(k/S);cy+=k%S});cx/=cells.length;cy/=cells.length;
+    let pick=cells[0],bd=1e9;cells.forEach(k=>{const d=(Math.floor(k/S)-cx)**2+((k%S)-cy)**2;if(d<bd){bd=d;pick=k}});
+    const t=Math.floor(pick/S),q=pick%S;const name=a.name.length>16?a.name.slice(0,15)+'…':a.name;const w=Math.min(W-L-4,24+name.length*5.6);
+    let x=xOf(t)+tw/2-w/2;x=Math.max(L-2,Math.min(W-2-w,x));const y=Tp+(S-1-q)*sh+sh/2-8;
+    out+='<g pointer-events="none"><rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+w.toFixed(1)+'" height="16" rx="8" fill="var(--surface)" stroke="var(--ink)" stroke-opacity=".25"/><circle cx="'+(x+9).toFixed(1)+'" cy="'+(y+8).toFixed(1)+'" r="4" fill="var(--m'+a.color+')"/><text x="'+(x+17).toFixed(1)+'" y="'+(y+11.5).toFixed(1)+'" class="mlt">'+esc(name)+'</text></g>'});
+  return out}
+
+function areaRow(z,m,a){const on=state.mapPaint&&state.mapBrush===a.id;const cv=a.cultivar&&strainOf(a.cultivar);
+  let r='<div class="area-row'+(on?' on':'')+'"><button class="ar-main" data-act="mbrush" data-k="'+esc(a.id)+'"><span class="sw" style="background:var(--m'+a.color+')"></span><span class="ar-t"><b>'+esc(a.name)+'</b><small>'+(cv&&cv.n!==a.name?esc(cv.n)+' · ':'')+a.pct+'%'+(a.plants?' · '+fmtPlants(a.plants)+' plants':'')+' · '+(a.houses.length?housesText(a.houses):'not painted yet')+'</small></span></button><button class="btn ghost ar-edit" data-act="medit" data-k="'+esc(a.id)+'">'+(state.mapEdit===a.id?'Close':'Edit')+'</button></div>';
+  if(state.mapEdit===a.id){r+='<div class="area-ed"><div class="row"><div class="field"><label for="ma_name">Name</label><input id="ma_name" data-ma="name" data-k="'+esc(a.id)+'" value="'+esc(a.name)+'" maxlength="40" autocomplete="off"></div><div class="field"><label for="ma_cult">Cultivar</label><select id="ma_cult" data-ma="cultivar" data-k="'+esc(a.id)+'"><option value="">None</option>'+STRAINS.map(s=>'<option value="'+s.k+'"'+(s.k===a.cultivar?' selected':'')+'>'+esc(s.n)+'</option>').join('')+'</select></div></div>'
+    +'<div><div class="note" style="margin-bottom:6px">Colour</div><div class="swatches">'+range(1,MAP_SLOTS).map(i=>'<button class="'+(a.color===i?'on':'')+'" style="background:var(--m'+i+')" data-act="mcolor" data-k="'+esc(a.id)+':'+i+'" aria-label="'+MAP_COLOR_NAMES[i-1]+'" aria-pressed="'+(a.color===i)+'"></button>').join('')+'</div>'+(m.areas.length>3?'<p class="note" style="margin:6px 0 0">With more than three areas, some colours can look alike to colour-blind viewers. The names on the map keep each area clear.</p>':'')+'</div>'
+    +(state.mapDelArea===a.id?'<div class="confirm"><strong>Delete '+esc(a.name)+'?</strong><span class="note">Its painted sections go back to not mapped.</span><div class="row"><button class="btn danger" data-act="mdelyes" data-k="'+esc(a.id)+'">Delete area</button><button class="btn ghost" data-act="mdelno">Keep it</button></div></div>':'<button class="btn ghost" data-act="mdel" data-k="'+esc(a.id)+'" style="color:var(--muted);align-self:flex-start">Delete area</button>')+'</div>'}
+  return r}
+
+const MAP_HINT={cell:'Tap sections to paint them one at a time.',box:'Tap one corner, then the opposite corner, to fill a block.',trough:'Tap a trough to paint its whole length.',house:'Tap anywhere in the house to paint all of it.',zone:'Tap the map to paint every house in the zone.'};
+function paintBar(m){if(!state.mapPaint)return '';const b=state.mapBrush;const mode=state.mapMode||'cell';
+  return '<div class="paintbar"><div class="pb-in"><div class="pb-row brushes">'+m.areas.map(a=>'<button class="'+(b===a.id?'on':'')+'" data-act="mbrush" data-k="'+esc(a.id)+'"><i style="background:var(--m'+a.color+')"></i>'+esc(a.name)+'</button>').join('')+'<button class="'+(b===''?'on':'')+'" data-act="mbrush" data-k=""><i class="er"></i>Eraser</button></div>'
+   +'<div class="pb-row modes">'+[['cell','Section'],['box','Box'],['trough','Trough'],['house','House'],['zone','Zone']].map(([k,n])=>'<button class="'+(mode===k?'on':'')+'" data-act="mmode" data-k="'+k+'" aria-pressed="'+(mode===k)+'">'+n+'</button>').join('')+'</div>'
+   +'<div class="pb-foot"><span class="pb-hint">'+(mode==='box'&&state.boxAnchor?'Now tap the opposite corner.':MAP_HINT[mode])+'</span><button class="btn ghost" data-act="mundo"'+(mapUndo.some(u=>u.z===state.mapZone)?'':' disabled')+'>Undo</button><button class="btn primary" data-act="mpaint">Done</button></div></div></div>'}
+
+function viewMap(){
+  const z=state.mapZone=state.mapZone||state.startZone;if(maps[z]&&!maps[z].sv){if(maps[z].sections===10)resizeMap(z,maps[z].troughs,24);maps[z].sv=2;saveMap(z)}const m=maps[z]||mapDefault(z);const H=housesFor(z);const ar=areaOf(z);
+  if(!state.mapHouse||state.mapHouse>H)state.mapHouse=1;const hh=state.mapHouse;const st=mapStats(z,m);
+  let h='<div class="field" style="margin-top:18px"><label for="map_zone">Zone</label><select id="map_zone">'+AREAS.map(a=>'<optgroup label="'+a.n+'">'+a.zones.map(q=>'<option value="'+q+'"'+(q===z?' selected':'')+'>Zone '+q+(maps[q]&&maps[q].areas.length?' · mapped':'')+'</option>').join('')+'</optgroup>').join('')+'</select></div>';
+  h+='<p class="sub" style="margin-top:10px">'+ar.n+' · '+H+' houses × '+m.troughs+' troughs × '+m.sections+' sections'+'</p>'+plantsPanel(z,m,H);
+  h+='<div class="map-panel">'+overviewSvg(z,m)+'</div>';
+  h+='<h2>'+leafSvg()+'Areas</h2>';
+  if(!m.areas.length)h+='<div class="empty">'+leafSvg()+'<span>No areas yet. Add one for each cultivar in this zone, then paint where it grows.</span></div>';
+  else h+='<div class="panel area-list">'+st.areas.map(a=>areaRow(z,m,a)).join('')+(st.unmapped?'<div class="area-row"><span class="sw0"></span><span class="ar-t"><b>Not mapped</b><small>'+Math.round(st.unmapped/st.total*100)+'%'+(st.tp?' · '+fmtPlants(st.unmappedPlants)+' plants':'')+'</small></span></div>':'')+'</div>';
+  h+='<div class="row" style="margin-top:10px"><button class="btn primary" data-act="maddarea">Add area</button>'+(m.areas.length&&!state.mapPaint?'<button class="btn" data-act="mpaint">Paint areas</button>':'')+'</div>';
+  h+='<h2>'+leafSvg()+'House '+hh+'</h2><div class="chips" role="group" aria-label="House">'+range(1,H).map(n=>'<button class="'+(n===hh?'on':'')+'" data-act="mhouse" data-k="'+n+'" aria-pressed="'+(n===hh)+'">H'+n+'</button>').join('')+'<button class="'+(state.mapZoom?'on':'')+'" data-act="mzoom" aria-pressed="'+!!state.mapZoom+'">'+(state.mapZoom?'Fit to screen':'Zoom in')+'</button></div>';
+  h+='<div class="map-panel'+(state.mapZoom?' scroll':'')+'">'+houseSvg(z,m,hh)+'</div>';
+  const I=state.mapInfo;
+  if(I&&I.z===z&&!state.mapPaint){const id=(m.cells[I.h]||[])[I.t*m.sections+I.s]||'';const a=m.areas.find(x=>x.id===id);h+='<div class="map-info">House '+I.h+' · trough '+(I.t+1)+' · section '+(I.s+1)+': <b>'+(a?esc(a.name):'not mapped')+'</b>'+(housePlantsOf(m,I.h,H)?' <span class="note">('+fmtPlants(housePlantsOf(m,I.h,H)/(m.troughs*m.sections))+' plants per section in this house)</span>':'')+'</div>'}
+  else if(!state.mapPaint)h+='<p class="note" style="margin-top:8px">Tap a section to see what’s there.'+(m.areas.length?' Tap <b>Paint areas</b> to change the map.':'')+'</p>';
+  h+='<p class="note" style="margin-top:6px">Troughs 1–'+m.troughs+' run left to right in pairs, about 80 cm between pairs. Sections run from 1 at the bottom of each trough to '+m.sections+' at the top. The drawing isn’t to scale along the trough.</p>';
+  const T=m.troughs,S=m.sections;const perT=mapTotalPlants(m,H)?mapTotalPlants(m,H)/(H*T):0;
+  h+='<details class="map-set"'+(state.mapSetOpen?' open':'')+'><summary data-act="msetopen">Trough layout</summary><div class="panel"><div class="row"><div class="field"><label for="ms_troughs">Troughs per house</label><input id="ms_troughs" type="number" inputmode="numeric" min="2" max="24" step="2" data-mset="troughs" value="'+T+'"></div><div class="field"><label for="ms_sections">Sections per trough</label><input id="ms_sections" type="number" inputmode="numeric" min="1" max="40" data-mset="sections" value="'+S+'"></div></div>'
+    +'<p class="note" style="margin-bottom:0">'+(perT?'The plant count works out to about '+fmtPlants(perT)+' plants per trough and '+fmtPlants(perT/S)+' per section'+(m.plantsMode==='house'?' on average':'')+'. ':'Set the zone’s plant count at the top to see plant estimates for each area. ')+'More sections let you mark smaller splits along a trough; changing the number keeps what you’ve painted.</p></div></details>';
+  const others=ZONES.filter(q=>q!==z&&maps[q]&&maps[q].areas.length);
+  h+='<h2>'+leafSvg()+'Copy or clear</h2><div class="panel">'+(others.length?'<div class="row"><div class="field"><label for="map_copy">Copy the layout from</label><select id="map_copy">'+others.map(q=>'<option value="'+q+'"'+(q===state.mapCopyFrom?' selected':'')+'>Zone '+q+'</option>').join('')+'</select></div><button class="btn" data-act="mcopy" style="align-self:flex-end">Copy</button></div>':'<p class="note" style="margin-top:0">Once another zone has a map, you can copy its layout here.</p>')
+    +(state.mapConfirm?'<div class="confirm"><strong>'+(state.mapConfirm==='clear'?'Clear the map for Zone '+z+'?':'Replace Zone '+z+'’s map with Zone '+state.mapCopyFrom+'’s?')+'</strong><span class="note">'+(state.mapConfirm==='clear'?'All areas and painted sections are removed. Undo can bring the painting back, but not the area names.':'This zone’s areas and painting are replaced.')+'</span><div class="row"><button class="btn danger" data-act="mconfirmyes">'+(state.mapConfirm==='clear'?'Clear map':'Replace map')+'</button><button class="btn ghost" data-act="mconfirmno">Cancel</button></div></div>':(m.areas.length?'<button class="btn ghost block" data-act="mclear" style="margin-top:10px;color:var(--muted)">Clear this zone’s map</button>':''))+'</div>';
+  h+=paintBar(m);
+  return h}
+
+function mapPaintAt(z,h,t,q){
+  const m=ensureMap(z);const T=m.troughs,S=m.sections;const id=state.mapBrush;if(id===undefined||id===null){toast('Pick an area to paint with.');return}
+  const before=JSON.stringify(m.cells);let changed=false;const set=(hh,tt,qq)=>{const c=mapCells(m,hh);const k=tt*S+qq;if(c[k]!==id){c[k]=id;changed=true}};
+  const mode=state.mapMode||'cell';
+  if(mode==='cell')set(h,t,q);
+  else if(mode==='trough'){for(let s=0;s<S;s++)set(h,t,s)}
+  else if(mode==='house'){for(let tt=0;tt<T;tt++)for(let s=0;s<S;s++)set(h,tt,s)}
+  else if(mode==='zone'){for(let hh=1;hh<=housesFor(z);hh++)for(let tt=0;tt<T;tt++)for(let s=0;s<S;s++)set(hh,tt,s)}
+  else if(mode==='box'){const A=state.boxAnchor;if(!A||A.z!==z||A.h!==h){state.boxAnchor={z,h,t,s:q};render();return}
+    for(let tt=Math.min(A.t,t);tt<=Math.max(A.t,t);tt++)for(let s=Math.min(A.s,q);s<=Math.max(A.s,q);s++)set(h,tt,s);state.boxAnchor=null}
+  if(changed){mapUndo.push({z,cells:before});if(mapUndo.length>40)mapUndo.shift();saveMap(z)}
+  render()}
+function resizeMap(z,T2,S2){const m=ensureMap(z);const T=m.troughs,S=m.sections;if(T2===T&&S2===S)return;mapUndo=mapUndo.filter(u=>u.z!==z);
+  Object.keys(m.cells).forEach(h=>{const c=m.cells[h]||[];const n=[];for(let t=0;t<T2;t++)for(let s=0;s<S2;s++){const so=Math.min(S-1,Math.floor((s+.5)*S/S2));n.push(t<T?(c[t*S+so]||''):'')}m.cells[h]=n});
+  m.troughs=T2;m.sections=S2;saveMap(z)}
+function mapAction(a,b){
+  const z=state.mapZone;const k=b.dataset.k;
+  if(a==='mhouse'){state.mapHouse=+k;state.boxAnchor=null;state.mapInfo=null;return render()}
+  if(a==='mzoom'){state.mapZoom=!state.mapZoom;return render()}
+  if(a==='msetopen'){state.mapSetOpen=!state.mapSetOpen;return}
+  if(a==='maddarea'){const m=ensureMap(z);const id='a'+Date.now().toString(36).slice(-5)+Math.random().toString(36).slice(2,4);m.areas.push({id,name:'Area '+(m.areas.length+1),cultivar:'',color:nextSlot(m)});state.mapEdit=id;state.mapBrush=id;state.mapPaint=true;state.mapMode=state.mapMode||'cell';state.mapInfo=null;state.boxAnchor=null;saveMap(z);render();setTimeout(()=>{const el=document.getElementById('ma_cult');if(el)el.focus()},30);return}
+  if(a==='medit'){state.mapEdit=state.mapEdit===k?null:k;state.mapDelArea=null;return render()}
+  if(a==='mbrush'){state.mapBrush=k;if(!state.mapPaint){state.mapPaint=true;state.mapMode=state.mapMode||'cell';state.mapInfo=null}state.boxAnchor=null;return render()}
+  if(a==='mpaint'){state.mapPaint=!state.mapPaint;state.boxAnchor=null;state.mapInfo=null;if(state.mapPaint){const m=maps[z];if(m&&m.areas.length&&!m.areas.some(x=>x.id===state.mapBrush))state.mapBrush=m.areas[0].id}return render()}
+  if(a==='mmode'){state.mapMode=k;state.boxAnchor=null;return render()}
+  if(a==='mcell'){const h=+b.dataset.h,t=+b.dataset.t,q=+b.dataset.s;if(state.mapPaint)return mapPaintAt(z,h,t,q);state.mapInfo={z,h,t,s:q};return render()}
+  if(a==='mundo'){for(let i=mapUndo.length-1;i>=0;i--){if(mapUndo[i].z===z){const u=mapUndo.splice(i,1)[0];ensureMap(z).cells=JSON.parse(u.cells);saveMap(z);toast('Undone');break}}state.boxAnchor=null;return render()}
+  if(a==='mcolor'){const [id,slot]=k.split(':');const ar=(maps[z]||{areas:[]}).areas.find(x=>x.id===id);if(ar){ar.color=+slot;saveMap(z)}return render()}
+  if(a==='mdel'){state.mapDelArea=k;return render()}
+  if(a==='mdelno'){state.mapDelArea=null;return render()}
+  if(a==='mdelyes'){const m=maps[z];if(m){m.areas=m.areas.filter(x=>x.id!==k);Object.values(m.cells).forEach(c=>{for(let i=0;i<c.length;i++)if(c[i]===k)c[i]=''});if(state.mapBrush===k)state.mapBrush=m.areas[0]?m.areas[0].id:undefined;if(!m.areas.length)state.mapPaint=false;saveMap(z)}state.mapDelArea=null;state.mapEdit=null;toast('Area deleted');return render()}
+  if(a==='mcopy'){const sel=document.getElementById('map_copy');state.mapCopyFrom=sel?+sel.value:null;if(!state.mapCopyFrom)return;const m=maps[z];if(m&&(m.areas.length||Object.values(m.cells).some(c=>c.some(Boolean)))){state.mapConfirm='copy';return render()}return doMapCopy()}
+  if(a==='mclear'){state.mapConfirm='clear';return render()}
+  if(a==='mconfirmno'){state.mapConfirm=null;return render()}
+  if(a==='mconfirmyes'){if(state.mapConfirm==='clear'){const m=ensureMap(z);mapUndo.push({z,cells:JSON.stringify(m.cells)});m.cells={};m.areas=[];state.mapPaint=false;state.mapBrush=undefined;saveMap(z);toast('Map cleared');state.mapConfirm=null;return render()}state.mapConfirm=null;return doMapCopy()}
+}
+function doMapCopy(){const z=state.mapZone,src=maps[state.mapCopyFrom];if(!src)return;const cur=maps[z];const cp=clone(src);cp.plants=(cur&&cur.plants)||cp.plants||mapDefault(z).plants;maps[z]=cp;mapUndo=mapUndo.filter(u=>u.z!==z);saveMap(z);state.mapConfirm=null;toast('Copied the layout from Zone '+state.mapCopyFrom);render()}
+function mapInput(t,changed){const z=state.mapZone;
+  if(t.dataset.ma){const m=ensureMap(z);const ar=m.areas.find(x=>x.id===t.dataset.k);if(!ar)return;
+    if(t.dataset.ma==='name'){ar.name=t.value.slice(0,40)||'Area';saveMap(z);if(changed)render();return}
+    if(t.dataset.ma==='cultivar'&&changed){const prevN=ar.cultivar&&strainOf(ar.cultivar)?strainOf(ar.cultivar).n:null;ar.cultivar=t.value;const s=strainOf(t.value);if(s&&(/^Area \d+$/.test(ar.name)||ar.name===prevN))ar.name=s.n;saveMap(z);render();return}}
+  if(t.dataset.mset&&changed){const m=ensureMap(z);const v=parseInt(t.value,10);
+    if(t.dataset.mset==='plants'){m.plants=v>0?v:0;saveMap(z);return render()}
+    if(t.dataset.mset==='troughs'){let n=Math.max(2,Math.min(24,v||12));if(n%2)n+=1;resizeMap(z,n,m.sections);return render()}
+    if(t.dataset.mset==='sections'){const n=Math.max(1,Math.min(40,v||24));resizeMap(z,m.troughs,n);return render()}}
+}
 function render(){
   renderTop();
   const app=document.getElementById('app');
-  app.innerHTML=state.view==='walk'?viewWalk():state.view==='card'?viewCard():state.view==='trends'?viewTrends():state.view==='strains'?viewStrains():state.view==='strain'?viewStrain():state.view==='guide'?viewGuide():state.view==='pest'?viewPest():state.view==='sprays'?viewSprays():state.view==='sprayform'?viewSprayForm():state.view==='alerts'?viewAlerts():state.view==='plantings'?viewPlantings():state.view==='plantform'?viewPlantForm():state.view==='settings'?viewSettings():viewHome();
+  app.innerHTML=state.view==='walk'?viewWalk():state.view==='card'?viewCard():state.view==='trends'?viewTrends():state.view==='strains'?viewStrains():state.view==='strain'?viewStrain():state.view==='guide'?viewGuide():state.view==='pest'?viewPest():state.view==='sprays'?viewSprays():state.view==='sprayform'?viewSprayForm():state.view==='map'?viewMap():state.view==='alerts'?viewAlerts():state.view==='plantings'?viewPlantings():state.view==='plantform'?viewPlantForm():state.view==='settings'?viewSettings():viewHome();
+  document.body.classList.toggle('painting',state.view==='map'&&!!state.mapPaint);
   onDataRendered();
 }
 function go(view){state.view=view;state.confirmDel=false;render();window.scrollTo(0,0);armBack()}
@@ -1343,6 +1556,10 @@ document.addEventListener('click',e=>{
   if(a==='trends')return go('trends');
   if(a==='strains'){state.copyText=null;return go('strains')}
   if(a==='guidehome'){state.guideFrom=null;return go('guide')}
+  if(a==='map'){state.mapFrom='home';state.mapZone=state.mapZone||state.startZone;state.mapPaint=false;return go('map')}
+  if(a==='mapopen'){state.mapFrom=state.view==='walk'?'walk':'home';state.mapZone=+b.dataset.k;state.mapHouse=1;state.mapPaint=false;state.mapInfo=null;return go('map')}
+  if(['mplantsedit','mplantscancel','mplantssave'].includes(a))return mapPlantsAction(a);
+  if(a.charAt(0)==='m'&&typeof mapAction==='function'&&['mhouse','mzoom','msetopen','maddarea','medit','mbrush','mpaint','mmode','mcell','mundo','mcolor','mdel','mdelno','mdelyes','mcopy','mclear','mconfirmno','mconfirmyes'].includes(a))return mapAction(a,b);
   if(a==='alerts')return go('alerts');
   if(['alertopen','alertwalk','asnooze','adismiss'].includes(a))return alertAction(a,b);
   if(a==='notifyon')return enableReminders();
@@ -1429,6 +1646,10 @@ function firstOpen(w){for(let h=1;h<=housesFor(w.zone);h++)for(let c=1;c<=CARDS;
 
 document.addEventListener('change',e=>{
   const t=e.target;
+  if(t.id==='map_zone'){state.mapZone=+t.value;state.mapHouse=1;state.boxAnchor=null;state.mapInfo=null;state.mapEdit=null;state.mapConfirm=null;state.mapPaint=false;return render()}
+  if(t.id==='map_copy'){state.mapCopyFrom=+t.value;return}
+  if(t.dataset.ma||t.dataset.mset){mapInput(t,true);return}
+  if(t.dataset.mpd){mpdInput(t);return}
   if(t.dataset.ri){render();return}
   if(t.dataset.pf){pfInput(t,true);return}
   if(t.id==='restore_in'&&t.files&&t.files[0]){readBackupFile(t.files[0]);t.value='';return}
@@ -1449,6 +1670,8 @@ function sfInput(t){const d=state.sprayDraft;if(!d)return;const f=t.dataset.sf;c
   if(['rei','phi','date','time'].includes(f)){const el=document.getElementById('sf_calc');if(el)el.innerHTML=calcText(d)}}
 document.addEventListener('input',e=>{
   const t=e.target;
+  if(t.dataset.ma==='name'){mapInput(t,false);return}
+  if(t.dataset.mpd&&t.dataset.mpd!=='mode'){mpdInput(t);return}
   if(t.dataset.ri){alertCfg.intervals=alertCfg.intervals||{};const v=parseInt(t.value,10);if(v>0&&v<=60)alertCfg.intervals[t.dataset.ri]=v;else delete alertCfg.intervals[t.dataset.ri];saveDoc('config/alerts');return}
   if(t.dataset.pf){pfInput(t,false);return}
   if(t.dataset.sf){sfInput(t);return}
@@ -1464,7 +1687,7 @@ let backArmed=false;
 function armBack(){if(backArmed)return;try{history.pushState({zs:1},'');backArmed=true}catch(e){}}
 function appBack(){
   if(locked)return true;
-  const cancel=[['confirmDel',false],['sprayConfirmDel',false],['plantConfirmDel',false],['harvestConfirm',null],['restore',null],['pinForm',false]];
+  const cancel=[['mapPlantsDraft',null],['mapConfirm',null],['mapDelArea',null],['mapEdit',null],['mapPaint',false],['confirmDel',false],['sprayConfirmDel',false],['plantConfirmDel',false],['harvestConfirm',null],['restore',null],['pinForm',false]];
   for(const [k,v] of cancel){if(state[k]){state[k]=v;render();return true}}
   if(state.view==='pest'&&state.guideFrom){const g=document.querySelector('[data-act=guideback]');if(g){g.click();return true}}
   const bk=document.querySelector('#topbar .back');if(bk){bk.click();return true}
