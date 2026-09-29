@@ -368,6 +368,54 @@ body.painting .toast{bottom:calc(196px + env(safe-area-inset-bottom,0px))}
 .map-line .dots{display:flex;gap:3px;flex:none}
 .map-line .dots i{width:12px;height:12px;border-radius:4px;display:block}
 .map-line span.t{flex:1}
+.cal-today{display:flex;gap:12px;align-items:center;background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:12px 14px;margin-top:16px;box-shadow:var(--shadow)}
+.season-ic{width:40px;height:40px;flex:none}
+.cal-item .season-ic{width:30px;height:30px}
+.ct-date{font-family:var(--display);font-weight:700;font-size:20px}
+.ct-sub{font-size:14px;color:var(--purple);font-weight:700}
+.cal-head{display:flex;align-items:center;gap:6px;margin:18px 0 10px}
+.cal-head b{flex:1;min-width:0;text-align:center;font-family:var(--display);font-weight:600;font-size:clamp(15px,4.6vw,18px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-head .back{flex:none;min-width:38px;min-height:38px}
+.cal-head .btn{min-height:38px;padding:0 10px;font-size:14px;flex:none}
+.cal-grid{display:grid;grid-template-columns:24px repeat(7,minmax(0,1fr));gap:3px;background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:8px;box-shadow:var(--shadow)}
+.cal-grid .hd{font-family:var(--display);font-weight:600;font-size:clamp(10px,3vw,12px);min-width:0;overflow:hidden;color:var(--muted);text-align:center;padding:2px 0}
+.cal-grid .cw{font-family:var(--mono);font-size:10px;color:var(--purple);display:flex;align-items:center;justify-content:center}
+.cd{aspect-ratio:1/1;min-width:0;width:100%;border:2px solid transparent;border-radius:12px;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:0;color:inherit}
+.cd .cn{font-family:var(--mono);font-size:clamp(12px,3.6vw,14px);font-variant-numeric:tabular-nums;line-height:1}
+.cd.out{opacity:.4}
+.cd.hol .cn{color:var(--bad);font-weight:700}
+.cd.today{border-color:var(--green)}
+.cd.sel{background:var(--leaf-soft);border-color:var(--ink)}
+.cdots{display:flex;gap:2px;min-height:6px}
+.cdots i,.cal-legend i{width:6px;height:6px;border-radius:50%;display:inline-block}
+.dw{background:var(--green)} .ds{background:#79B9E0} .dh{background:var(--bad)} .dse{background:var(--sticky);box-shadow:0 0 0 1px #A88A00}
+.cal-legend{margin-top:8px}
+.cal-day{margin-top:12px;background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.cd-hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.cd-hd b{font-family:var(--display);font-weight:600;font-size:18px}
+.cal-item{display:flex;gap:10px;align-items:center;text-align:left;background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:8px 10px;color:inherit;width:100%}
+.cal-item span:last-child{display:flex;flex-direction:column;min-width:0}
+.cal-item small{color:var(--muted);font-size:12.5px}
+.cal-item .z{font-family:var(--mono);color:var(--purple);min-width:40px}
+.cal-item .ic{width:28px;height:28px;flex:none}
+.hflag{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:500;border-radius:5px;padding:1px 5px;flex:none;line-height:1.4}
+.hflag.CA{background:#FBE3E3;color:#B3261E} .hflag.US{background:#E1E9F8;color:#23489C}
+.year-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ym{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:8px;display:flex;flex-direction:column;gap:6px;color:inherit;text-align:left}
+.ym.on{border-color:var(--green)}
+.ym-hd{display:flex;justify-content:space-between;align-items:baseline}
+.ym-hd b{font-family:var(--display);font-weight:600;font-size:14px}
+.ym-hd small{font-size:11px;color:var(--green);font-weight:700}
+.ym-g{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.ym-g i{aspect-ratio:1/1;border-radius:2px;background:var(--sunk);display:block}
+.ym-g i.e{background:transparent}
+.ym-g i.h{box-shadow:inset 0 0 0 1.5px var(--bad)}
+.ym-g i.w{background:var(--green)}
+.ym-g i.t{outline:1.5px solid var(--ink)}
+.hol-list{padding:6px 12px}
+.hol-row{display:grid;grid-template-columns:92px auto 1fr;gap:8px;align-items:center;width:100%;background:none;border:0;border-bottom:1px dashed var(--line);padding:8px 0;text-align:left;color:inherit;font-size:14px}
+.hol-row:last-child{border-bottom:0}
+.hd8{font-family:var(--mono);font-size:12px;color:var(--muted)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -564,6 +612,7 @@ function renderTop(){
   else if(state.view==='plantform')left='<button class="back" data-act="plantings" aria-label="Back to plantings">‹</button><div class="crumb">'+(state.plantId?'Edit planting':'Log a planting')+'</div>';
   else if(state.view==='alerts')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Rechecks</div>';
   else if(state.view==='map')left='<button class="back" data-act="'+(state.mapFrom==='walk'?'walk':'home')+'" aria-label="Back">‹</button><div class="crumb">Zone '+state.mapZone+' map</div>';
+  else if(state.view==='calendar')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Calendar</div>';
   else if(state.view==='sprays')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Spray log</div>';
   else if(state.view==='sprayform')left='<button class="back" data-act="sprays" aria-label="Back to spray log">‹</button><div class="crumb">'+(state.sprayId?'Edit spray':'Log a spray')+'</div>';
   else if(state.view==='guide')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Pest guide</div>';
@@ -582,7 +631,7 @@ function viewHome(){
   else{AREAS.concat([{k:'other',n:'Other'}]).forEach(a=>{const rows=list.filter(([,w])=>areaOf(w.zone).k===a.k);if(!rows.length)return;
     h+='<div class="area-hd '+a.k+'">'+a.n+'</div><div class="list">';rows.slice(0,30).forEach(([id,w])=>{const p=walkProgress(w),tt=walkTotals(w);const pct=Math.round(p.plants/zoneTotal(w.zone)*100);
     h+='<button class="walk" data-act="open" data-id="'+esc(id)+'"><span class="z">Z'+w.zone+'</span><span class="d">'+esc(fmtDate(w.date))+'</span><span class="pct">'+pct+'%</span><span class="m">'+(strainOf(w.strain)?esc(strainOf(w.strain).n)+' · ':'')+p.cards+'/'+cardsTotal(w.zone)+' cards · '+tt.catches+' caught · '+tt.findings+' plants flagged'+(pending.has(id)?' · unsaved':'')+'</span></button>'});h+='</div>'})}
-  h+='<div class="home-links"><button class="btn plantb" data-act="map" style="grid-column:1/-1">'+MAPICON+'Zone maps</button><button class="btn sticky" data-act="guidehome" >Pest guide</button><button class="btn sprayb" data-act="sprays">Spray log</button><button class="btn plantb" data-act="plantings">Plantings</button><button class="btn" data-act="strains">'+leafSvg()+'Cultivars</button><button class="btn" data-act="trends"'+(list.length?'':' disabled')+'>Trends</button><button class="btn" data-act="alerts">Rechecks</button></div>';
+  h+='<div class="home-links"><button class="btn plantb" data-act="map" style="grid-column:1/-1">'+MAPICON+'Zone maps</button><button class="btn sprayb" data-act="calendar" style="grid-column:1/-1">'+'<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="15" r="1.6" fill="var(--green)"/><circle cx="15" cy="15" r="1.6" fill="var(--bad)"/></svg>'+'Calendar</button><button class="btn sticky" data-act="guidehome" >Pest guide</button><button class="btn sprayb" data-act="sprays">Spray log</button><button class="btn plantb" data-act="plantings">Plantings</button><button class="btn" data-act="strains">'+leafSvg()+'Cultivars</button><button class="btn" data-act="trends"'+(list.length?'':' disabled')+'>Trends</button><button class="btn" data-act="alerts">Rechecks</button></div>';
   const nData=Object.values(walks).filter(Boolean).length+Object.values(sprays).filter(Boolean).length;
   if(nData&&(!prefs.lastBackup||Date.now()-prefs.lastBackup>7*864e5))h+='<div class="rule" style="margin-top:14px"><b>'+(prefs.lastBackup?'Last backup was '+Math.floor((Date.now()-prefs.lastBackup)/864e5)+' days ago.':'No backup yet.')+'</b> Your records live only on this phone. <button class="linkish" data-act="backup">Save a backup now</button></div>';
   h+='<div style="margin-top:10px"><button class="btn ghost block" data-act="settings">Backup &amp; lock</button></div>';
@@ -617,7 +666,8 @@ function viewWalk(){
   else{h+='<div class="flags">';flags.slice(0,30).forEach(f=>{h+='<button class="flag" data-act="card" data-k="'+f.k+'"><span class="loc">'+f.k.replace('H','H').replace('C',' C')+' '+f.pk+'</span><span class="what">'+esc(f.i.n)+'</span><span class="pill l'+f.v+'">'+SEV[f.v]+'</span></button>'});if(flags.length>30)h+='<p class="note">'+(flags.length-30)+' more lower-severity findings.</p>';h+='</div>'}
   h+='<h2>Card catches this walk</h2><div class="tbl-wrap"><table><tbody>'+CARD_ITEMS.map(i=>'<tr><td>'+esc(i.n)+'</td><td>'+tt.t[i.k]+'</td></tr>').join('')+'</tbody></table></div>';
   h+='<div class="nav"><button class="btn" data-act="export">Export CSV</button><button class="btn primary" data-act="nextopen">'+(p.cards<cardsTotal(w.zone)?'Next unfinished card':'All cards done')+'</button></div>';
-  h+='<div style="margin-top:24px">'+(state.confirmDel?'<div class="confirm"><strong>Delete this walk?</strong><span class="note">All '+cardsTotal(w.zone)+' cards and '+zoneTotal(w.zone)+' plant records for Zone '+w.zone+' on '+esc(fmtDate(w.date))+' are removed for good.</span><div class="row"><button class="btn danger" data-act="delyes">Delete walk</button><button class="btn ghost" data-act="delno">Keep it</button></div></div>':'<button class="btn ghost block" data-act="del" style="color:var(--muted)">Delete walk</button>')+'</div>';
+  h+='<div style="margin-top:24px">'+(state.wDateEdit?'<div class="panel"><div class="field"><label for="wdate">Walk date</label><input id="wdate" type="date" value="'+esc(w.date)+'"></div><p class="note" style="margin:8px 0 0">Moves this walk and everything logged in it to the new date. Rechecks and trends follow.</p><div class="row" style="margin-top:10px"><button class="btn primary" data-act="wdatesave">Save date</button><button class="btn ghost" data-act="wdatecancel">Cancel</button></div></div>':'<button class="btn ghost block" data-act="wdate">Change walk date</button>')+(w.dateChangedFrom?'<p class="note" style="margin-top:6px">Originally logged for '+esc(fmtDate(w.dateChangedFrom))+'.</p>':'')+'</div>';
+  h+='<div style="margin-top:10px">'+(state.confirmDel?'<div class="confirm"><strong>Delete this walk?</strong><span class="note">All '+cardsTotal(w.zone)+' cards and '+zoneTotal(w.zone)+' plant records for Zone '+w.zone+' on '+esc(fmtDate(w.date))+' are removed for good.</span><div class="row"><button class="btn danger" data-act="delyes">Delete walk</button><button class="btn ghost" data-act="delno">Keep it</button></div></div>':'<button class="btn ghost block" data-act="del" style="color:var(--muted)">Delete walk</button>')+'</div>';
   return h;
 }
 
@@ -1552,14 +1602,97 @@ function mapInput(t,changed){const z=state.mapZone;
     if(t.dataset.mset==='paired'){m.paired=t.checked;if(m.paired&&m.troughs%2)resizeMap(z,m.troughs+1,m.sections);saveMap(z);return render()}
     if(t.dataset.mset==='sections'){const n=Math.max(1,Math.min(40,v||24));resizeMap(z,m.troughs,n);return render()}}
 }
+/* ---------- calendar ---------- */
+function calD(y,m,d){return new Date(y,m,d)}
+function addD(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n)}
+function easterSunday(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451);return calD(y,Math.floor((h+l-7*m+114)/31)-1,((h+l-7*m+114)%31)+1)}
+function nthDow(y,m,dow,n){const off=(dow-calD(y,m,1).getDay()+7)%7;return calD(y,m,1+off+(n-1)*7)}
+function lastDow(y,m,dow){const d=calD(y,m+1,0);return calD(y,m,d.getDate()-((d.getDay()-dow+7)%7))}
+const HOL_CACHE={};
+function holidaysOfYear(y){if(HOL_CACHE[y])return HOL_CACHE[y];const E=easterSunday(y);const L=[];const add=(d,n,c,note)=>L.push({date:isoDay(d),name:n,c,note});
+  const ON='Ontario public holiday';
+  add(calD(y,0,1),"New Year's Day",'CA',ON);
+  add(nthDow(y,1,1,3),'Family Day','CA',ON+' (also several other provinces)');
+  add(addD(E,-2),'Good Friday','CA',ON);
+  add(addD(E,1),'Easter Monday','CA','Federal; not a public holiday in Ontario');
+  {const d=calD(y,4,24);add(addD(d,-((d.getDay()+6)%7)),'Victoria Day','CA',ON)}
+  add(calD(y,6,1),'Canada Day','CA',ON+(calD(y,6,1).getDay()===0?'; observed Monday, July 2':''));
+  add(nthDow(y,7,1,1),'Civic Holiday','CA','Most provinces; not a public holiday in Ontario');
+  add(nthDow(y,8,1,1),'Labour Day','CA',ON);
+  add(calD(y,8,30),'National Day for Truth and Reconciliation','CA','Federal; not a public holiday in Ontario');
+  add(nthDow(y,9,1,2),'Thanksgiving','CA',ON);
+  add(calD(y,10,11),'Remembrance Day','CA','Federal; not a public holiday in Ontario');
+  add(calD(y,11,25),'Christmas Day','CA',ON);
+  add(calD(y,11,26),'Boxing Day','CA',ON);
+  const us=(d,n)=>{add(d,n,'US','US federal holiday');const w=d.getDay();if(w===6)add(addD(d,-1),n+' (observed)','US','US federal holiday, observed on Friday');if(w===0)add(addD(d,1),n+' (observed)','US','US federal holiday, observed on Monday')};
+  us(calD(y,0,1),"New Year's Day");us(nthDow(y,0,1,3),'Martin Luther King Jr. Day');us(nthDow(y,1,1,3),"Washington's Birthday");us(lastDow(y,4,1),'Memorial Day');us(calD(y,5,19),'Juneteenth');us(calD(y,6,4),'Independence Day');us(nthDow(y,8,1,1),'Labor Day');us(nthDow(y,9,1,2),'Columbus Day');us(calD(y,10,11),'Veterans Day');us(nthDow(y,10,4,4),'Thanksgiving');us(calD(y,11,25),'Christmas Day');
+  return HOL_CACHE[y]=L}
+function holidaysOn(iso){const y=+iso.slice(0,4);return holidaysOfYear(y).concat(holidaysOfYear(y+1)).filter(x=>x.date===iso)}
+function upcomingHolidays(fromIso,n){const y=+fromIso.slice(0,4);return holidaysOfYear(y).concat(holidaysOfYear(y+1)).filter(x=>x.date>fromIso&&!/observed/.test(x.name)).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,n)}
+/* equinoxes and solstices: Meeus mean-value formulas (good to within minutes for 2000–3000) */
+const SEASON_CACHE={};
+function seasonStarts(y){if(SEASON_CACHE[y])return SEASON_CACHE[y];const Y=(y-2000)/1000;const f=(a,b,c,d,e)=>a+b*Y+c*Y*Y+d*Y**3+e*Y**4;
+  const jd=[f(2451623.80984,365242.37404,.05169,-.00411,-.00057),f(2451716.56767,365241.62603,.00325,.00888,-.00030),f(2451810.21715,365242.01767,-.11575,.00337,.00078),f(2451900.05952,365242.74049,-.06223,-.00823,.00032)];
+  return SEASON_CACHE[y]=jd.map(j=>new Date((j-2440587.5)*864e5))}
+const SEASON_NAMES=['Spring','Summer','Fall','Winter'];
+function seasonOf(iso){const y=+iso.slice(0,4);const s=seasonStarts(y).map(isoDay);let i=-1;for(let k=3;k>=0;k--)if(iso>=s[k]){i=k;break}
+  let name,start,next;if(i<0){name='Winter';start=isoDay(seasonStarts(y-1)[3]);next={name:'Spring',date:s[0]}}else{name=SEASON_NAMES[i];start=s[i];next=i<3?{name:SEASON_NAMES[i+1],date:s[i+1]}:{name:'Spring',date:isoDay(seasonStarts(y+1)[0])}}
+  return{name,start,day:dayDiff(start,iso)+1,next}}
+function seasonStartOn(iso){const y=+iso.slice(0,4);const s=seasonStarts(y).map(isoDay);const i=s.indexOf(iso);return i<0?null:SEASON_NAMES[i]}
+function isoWeek(iso){const [y,m,d]=iso.split('-').map(Number);const t=new Date(Date.UTC(y,m-1,d));const day=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-day);const y0=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-y0)/864e5+1)/7)}
+function seasonSvg(n){const C={Spring:'#7FC46A',Summer:'#F2B233',Fall:'#E0782F',Winter:'#6FA6D8'}[n];
+  const body={Spring:'<path d="M20 34V20" stroke="'+C+'" stroke-width="3" stroke-linecap="round"/><path d="M20 22c-8 0-12-6-12-11 7 0 12 5 12 11z" fill="'+C+'"/><path d="M20 19c7 0 11-6 11-11-7 0-11 5-11 11z" fill="'+C+'" opacity=".7"/>',
+    Summer:'<circle cx="20" cy="20" r="7" fill="'+C+'"/>'+[0,45,90,135,180,225,270,315].map(a=>'<path transform="rotate('+a+' 20 20)" d="M20 5v5" stroke="'+C+'" stroke-width="3" stroke-linecap="round"/>').join(''),
+    Fall:'<g transform="translate(20,24) scale(.42)" fill="'+C+'">'+[[0,1],[30,.84],[-30,.84],[60,.66],[-60,.66],[100,.38],[-100,.38]].map(([a,k])=>'<path transform="rotate('+a+')" d="M0,0 Q'+(10*k)+','+(-24*k)+' 0,'+(-44*k)+' Q'+(-10*k)+','+(-24*k)+' 0,0Z"/>').join('')+'</g>',
+    Winter:[0,60,120].map(a=>'<path transform="rotate('+a+' 20 20)" d="M20 6v28M15 10l5 4 5-4M15 30l5-4 5 4" stroke="'+C+'" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>').join('')}[n];
+  return '<svg class="season-ic" viewBox="0 0 40 40" aria-hidden="true">'+body+'</svg>'}
+function viewCalendar(){
+  const t=today();const now=new Date();const y=state.calY!=null?state.calY:now.getFullYear(),mo=state.calM!=null?state.calM:now.getMonth();const sel=state.calSel||t;
+  const wByDay={},sByDay={};Object.entries(walks).forEach(([id,w])=>{if(w&&w.date)(wByDay[w.date]=wByDay[w.date]||[]).push([id,w])});sprayEntries().forEach(([id,s])=>(sByDay[s.date]=sByDay[s.date]||[]).push([id,s]));
+  const so=seasonOf(t);const nh=upcomingHolidays(t,2);
+  let h='<div class="cal-today">'+seasonSvg(so.name)+'<div><div class="ct-date">'+esc(fmtDay(now))+', '+now.getFullYear()+'</div><div class="ct-sub">Week '+isoWeek(t)+' · '+so.name+', day '+so.day+' · '+so.next.name+' starts '+esc(fmtShort(so.next.date))+'</div>'+(nh.length?'<div class="note">Next holiday'+(nh.length>1?'s':'')+': '+nh.map(x=>esc(x.name)+' <span class="hflag '+x.c+'">'+x.c+'</span> '+esc(fmtShort(x.date))).join(' · ')+'</div>':'')+'</div></div>';
+  h+='<div class="cal-head"><button class="back" data-act="calprev" aria-label="Previous month">‹</button><b>'+esc(calD(y,mo,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}))+'</b><button class="back" data-act="calnext" aria-label="Next month">›</button><button class="btn ghost" data-act="caltoday">Today</button></div>';
+  h+='<div class="cal-grid"><div class="cw hd">Wk</div>'+['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>'<div class="hd">'+d+'</div>').join('');
+  const first=calD(y,mo,1);const start=addD(first,-((first.getDay()+6)%7));
+  for(let r=0;r<6;r++){const rs=addD(start,r*7);if(r>0&&rs.getMonth()!==mo)break;h+='<div class="cw">'+isoWeek(isoDay(rs))+'</div>';
+    for(let c=0;c<7;c++){const d=addD(rs,c);const iso=isoDay(d);const inM=d.getMonth()===mo;const hs=holidaysOn(iso);const ws=wByDay[iso]||[],ss=sByDay[iso]||[];const se=seasonStartOn(iso);
+      h+='<button class="cd'+(inM?'':' out')+(iso===t?' today':'')+(iso===sel?' sel':'')+(hs.length?' hol':'')+'" data-act="calday" data-k="'+iso+'" aria-label="'+esc(fmtDay(d))+(ws.length?', '+ws.length+' walk'+(ws.length===1?'':'s'):'')+(hs.length?', holiday':'')+'"><span class="cn">'+d.getDate()+'</span><span class="cdots">'+(ws.length?'<i class="dw"></i>':'')+(ss.length?'<i class="ds"></i>':'')+(hs.length?'<i class="dh"></i>':'')+(se?'<i class="dse"></i>':'')+'</span></button>'}}
+  h+='</div><div class="legend cal-legend"><span><i class="dw"></i>Scout walk</span><span><i class="ds"></i>Spray</span><span><i class="dh"></i>Holiday</span><span><i class="dse"></i>Season starts</span><span>Wk = ISO work week (Mon–Sun)</span></div>';
+  const sd=new Date(sel+'T00:00');const hs=holidaysOn(sel),ws=wByDay[sel]||[],ss=sByDay[sel]||[];const se=seasonStartOn(sel);
+  h+='<div class="cal-day"><div class="cd-hd"><b>'+esc(fmtDay(sd))+', '+sd.getFullYear()+'</b><span class="note">Week '+isoWeek(sel)+' · '+seasonOf(sel).name+'</span></div>';
+  if(se)h+='<div class="cal-item">'+seasonSvg(se)+'<span><b>First day of '+se.toLowerCase()+'</b><small>'+esc(seasonStarts(+sel.slice(0,4))[SEASON_NAMES.indexOf(se)].toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}))+' '+(se==='Spring'||se==='Fall'?'equinox':'solstice')+'</small></span></div>';
+  hs.forEach(x=>h+='<div class="cal-item"><span class="hflag '+x.c+'">'+x.c+'</span><span><b>'+esc(x.name)+'</b><small>'+esc(x.note)+'</small></span></div>');
+  ws.forEach(([id,w])=>{const p=walkProgress(w),tt=walkTotals(w);h+='<button class="cal-item link" data-act="open" data-id="'+esc(id)+'"><span class="z">Z'+w.zone+'</span><span><b>Scout walk · '+areaOf(w.zone).n+' Zone '+w.zone+'</b><small>'+p.cards+'/'+cardsTotal(w.zone)+' cards · '+tt.catches+' caught · '+tt.findings+' plants flagged</small></span></button>'});
+  ss.forEach(([id,s])=>h+='<button class="cal-item link" data-act="sprayopen" data-id="'+esc(id)+'">'+dropSvg(s.method)+'<span><b>Spray · '+esc(s.product.name)+'</b><small>Zone'+(s.zones.length>1?'s ':' ')+s.zones.join(', ')+(s.time?' · '+esc(s.time):'')+'</small></span></button>');
+  if(!se&&!hs.length&&!ws.length&&!ss.length)h+='<p class="note" style="margin:6px 0 0">Nothing logged on this day.</p>';
+  h+='<button class="btn ghost" data-act="calstart" data-k="'+sel+'" style="margin-top:10px">Start a walk on this date</button></div>';
+  const days=Object.keys(wByDay).filter(d=>d.slice(0,4)===String(y));const nW=days.reduce((s,d)=>s+wByDay[d].length,0);
+  h+='<h2>'+leafSvg()+y+' at a glance</h2><p class="note" style="margin-bottom:8px">'+days.length+' scouting day'+(days.length===1?'':'s')+' and '+nW+' walk'+(nW===1?'':'s')+' in '+y+'. Tap a month to open it.</p><div class="year-grid">';
+  for(let m=0;m<12;m++){const f=calD(y,m,1);const lead=(f.getDay()+6)%7;const n=calD(y,m+1,0).getDate();let cells='';for(let i=0;i<lead;i++)cells+='<i class="e"></i>';let cnt=0;
+    for(let d=1;d<=n;d++){const iso=isoDay(calD(y,m,d));const w=wByDay[iso];if(w)cnt++;cells+='<i class="'+(w?'w':'')+(holidaysOn(iso).length?' h':'')+(iso===t?' t':'')+'"></i>'}
+    h+='<button class="ym'+(m===mo?' on':'')+'" data-act="calmonth" data-k="'+m+'"><span class="ym-hd"><b>'+esc(f.toLocaleDateString(undefined,{month:'short'}))+'</b><small>'+(cnt?cnt+' day'+(cnt===1?'':'s'):'')+'</small></span><span class="ym-g">'+cells+'</span></button>'}
+  h+='</div>';
+  const yh=holidaysOfYear(y).filter(x=>!/observed/.test(x.name)).sort((a,b)=>a.date.localeCompare(b.date)||a.c.localeCompare(b.c));
+  h+='<details class="map-set"'+(state.calHolOpen?' open':'')+'><summary data-act="calholopen">All holidays in '+y+'</summary><div class="panel hol-list">'+yh.map(x=>'<button class="hol-row" data-act="calgo" data-k="'+x.date+'"><span class="hd8">'+esc(new Date(x.date+'T00:00').toLocaleDateString(undefined,{month:'short',day:'numeric',weekday:'short'}))+'</span><span class="hflag '+x.c+'">'+x.c+'</span><span class="hn">'+esc(x.name)+'</span></button>').join('')+'</div></details>';
+  h+='<p class="note" style="margin-top:10px">Canadian holidays are marked for Ontario; provinces differ. US dates are federal holidays, with weekend dates also shown on the day they’re observed. Season start dates are calculated for the Northern Hemisphere.</p>';
+  return h}
+function calAction(a,b){const now=new Date();let y=state.calY!=null?state.calY:now.getFullYear(),m=state.calM!=null?state.calM:now.getMonth();const k=b.dataset.k;
+  if(a==='calprev'){m--;if(m<0){m=11;y--}state.calY=y;state.calM=m;return render()}
+  if(a==='calnext'){m++;if(m>11){m=0;y++}state.calY=y;state.calM=m;return render()}
+  if(a==='caltoday'){state.calY=null;state.calM=null;state.calSel=null;return render()}
+  if(a==='calday'){state.calSel=k;const d=new Date(k+'T00:00');state.calY=d.getFullYear();state.calM=d.getMonth();return render()}
+  if(a==='calmonth'){state.calM=+k;state.calY=y;return render()}
+  if(a==='calgo'){const d=new Date(k+'T00:00');state.calSel=k;state.calY=d.getFullYear();state.calM=d.getMonth();render();window.scrollTo({top:0,behavior:'smooth'});return}
+  if(a==='calholopen'){state.calHolOpen=!state.calHolOpen;return}
+  if(a==='calstart'){state.startDate=k;toast('Walk date set to '+fmtDate(k)+'. Pick a zone and start.');return go('home')}}
 function render(){
   renderTop();
   const app=document.getElementById('app');
-  app.innerHTML=state.view==='walk'?viewWalk():state.view==='card'?viewCard():state.view==='trends'?viewTrends():state.view==='strains'?viewStrains():state.view==='strain'?viewStrain():state.view==='guide'?viewGuide():state.view==='pest'?viewPest():state.view==='sprays'?viewSprays():state.view==='sprayform'?viewSprayForm():state.view==='map'?viewMap():state.view==='alerts'?viewAlerts():state.view==='plantings'?viewPlantings():state.view==='plantform'?viewPlantForm():state.view==='settings'?viewSettings():viewHome();
+  app.innerHTML=state.view==='walk'?viewWalk():state.view==='card'?viewCard():state.view==='trends'?viewTrends():state.view==='strains'?viewStrains():state.view==='strain'?viewStrain():state.view==='guide'?viewGuide():state.view==='pest'?viewPest():state.view==='sprays'?viewSprays():state.view==='sprayform'?viewSprayForm():state.view==='calendar'?viewCalendar():state.view==='map'?viewMap():state.view==='alerts'?viewAlerts():state.view==='plantings'?viewPlantings():state.view==='plantform'?viewPlantForm():state.view==='settings'?viewSettings():viewHome();
   document.body.classList.toggle('painting',state.view==='map'&&!!state.mapPaint);
   onDataRendered();
 }
-function go(view){state.view=view;state.confirmDel=false;render();window.scrollTo(0,0);armBack()}
+function go(view){state.view=view;state.confirmDel=false;state.wDateEdit=false;render();window.scrollTo(0,0);armBack()}
 
 /* CSV */
 function csvRows(list){
@@ -1584,6 +1717,8 @@ document.addEventListener('click',e=>{
   if(a==='trends')return go('trends');
   if(a==='strains'){state.copyText=null;return go('strains')}
   if(a==='guidehome'){state.guideFrom=null;return go('guide')}
+  if(a==='calendar'){state.calSel=null;state.calY=null;state.calM=null;return go('calendar')}
+  if(['calprev','calnext','caltoday','calday','calmonth','calgo','calholopen','calstart'].includes(a))return calAction(a,b);
   if(a==='map'){state.mapFrom='home';state.mapZone=state.mapZone||state.startZone;state.mapPaint=false;return go('map')}
   if(a==='mapopen'){state.mapFrom=state.view==='walk'?'walk':'home';state.mapZone=+b.dataset.k;state.mapHouse=1;state.mapPaint=false;state.mapInfo=null;return go('map')}
   if(['mplantsedit','mplantscancel','mplantssave'].includes(a))return mapPlantsAction(a);
@@ -1657,6 +1792,12 @@ document.addEventListener('click',e=>{
   if(a==='nextopen'){const nx=firstOpen(w);if(nx){state.card=nx;go('card')}else toast('Every card in this walk is complete.');return}
   if(a==='export')return exportCsv([[state.walkId,w]],'zone'+w.zone+'_'+w.date+'.csv');
   if(a==='exportzone'){const list=Object.entries(walks).filter(([,x])=>x&&x.zone===state.trendZone).sort((p,q)=>p[1].date.localeCompare(q[1].date));return exportCsv(list,'zone'+state.trendZone+'_all_walks.csv')}
+  if(a==='wdate'){state.wDateEdit=true;state.confirmDel=false;render();setTimeout(()=>{const el=document.getElementById('wdate');if(el)el.focus()},30);return}
+  if(a==='wdatecancel'){state.wDateEdit=false;return render()}
+  if(a==='wdatesave'){const w0=walks[state.walkId];const el=document.getElementById('wdate');const d=el&&el.value;if(!w0||!d){toast('Pick a date.');return}if(d===w0.date){state.wDateEdit=false;return render()}
+    const nid=d+'_Z'+w0.zone;if(walks[nid]){toast('Zone '+w0.zone+' already has a walk on '+fmtDate(d)+'. Delete or move that one first.');return}
+    const oid=state.walkId;const nw=clone(w0);nw.dateChangedFrom=w0.dateChangedFrom||w0.date;if(nw.dateChangedFrom===d)delete nw.dateChangedFrom;nw.date=d;nw.updatedAt=Date.now();
+    walks[nid]=nw;walks[oid]=undefined;touch(oid);touch(nid);state.walkId=nid;state.wDateEdit=false;toast('Walk moved to '+fmtDate(d));return render()}
   if(a==='del'){state.confirmDel=true;return render()}
   if(a==='delno'){state.confirmDel=false;return render()}
   if(a==='delyes'){const id=state.walkId;delete walks[id];walks[id]=undefined;touch(id);state.walkId=null;toast('Walk deleted');return go('home')}
@@ -1715,7 +1856,7 @@ let backArmed=false;
 function armBack(){if(backArmed)return;try{history.pushState({zs:1},'');backArmed=true}catch(e){}}
 function appBack(){
   if(locked)return true;
-  const cancel=[['mapMoveCard',null],['mapPlantsDraft',null],['mapConfirm',null],['mapDelArea',null],['mapEdit',null],['mapPaint',false],['confirmDel',false],['sprayConfirmDel',false],['plantConfirmDel',false],['harvestConfirm',null],['restore',null],['pinForm',false]];
+  const cancel=[['wDateEdit',false],['mapMoveCard',null],['mapPlantsDraft',null],['mapConfirm',null],['mapDelArea',null],['mapEdit',null],['mapPaint',false],['confirmDel',false],['sprayConfirmDel',false],['plantConfirmDel',false],['harvestConfirm',null],['restore',null],['pinForm',false]];
   for(const [k,v] of cancel){if(state[k]){state[k]=v;render();return true}}
   if(state.view==='pest'&&state.guideFrom){const g=document.querySelector('[data-act=guideback]');if(g){g.click();return true}}
   const bk=document.querySelector('#topbar .back');if(bk){bk.click();return true}
