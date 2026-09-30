@@ -162,8 +162,12 @@ button:active{transform:scale(.97)}
 .plant-head .btn.warn.on{background:var(--warn);color:#fff;border-color:var(--warn)}
 .grp{font-family:var(--display);font-weight:600;font-size:15px;color:var(--purple);margin-top:6px}
 .item{display:flex;flex-direction:column;gap:6px;padding-bottom:4px}
-.item .nm{font-weight:700;font-size:15px}
-.seg{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.item .nm{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.item .nmt{min-width:0}
+.fbox{flex:none;width:32px;height:32px;border-radius:9px;border:2px solid var(--muted);background:var(--surface);display:inline-flex;align-items:center;justify-content:center;padding:0;color:#fff;cursor:pointer}
+.fbox.on{background:var(--warn);border-color:var(--warn)}
+.pill.fnd{background:color-mix(in srgb,var(--warn) 16%,var(--surface));color:var(--warn);box-shadow:inset 0 0 0 1.5px var(--warn)}
+.seg{display:grid;grid-template-columns:1fr 1fr 1fr 1.45fr 1fr 1fr;gap:4px}
 .seg button{min-height:46px;border-radius:14px;border:2px solid var(--line);background:var(--bg);font-size:12px;font-weight:700;padding:2px}
 .seg button .k{display:block;font-family:var(--mono);font-size:16px}
 .seg button.sel.s0{background:var(--h0);color:var(--ink);border-color:var(--muted)}
@@ -171,6 +175,7 @@ button:active{transform:scale(.97)}
 .seg button.sel.s2{background:var(--h2);color:var(--h2-ink);border-color:var(--h2)}
 .seg button.sel.s3{background:var(--h3);color:var(--h3-ink);border-color:var(--h3)}
 .seg button.sel.s4{background:var(--h4);color:var(--h4-ink);border-color:var(--h4)}
+.seg button.sel.s5{background:var(--h4);color:var(--h4-ink);border-color:var(--h4)}
 textarea{width:100%;min-height:64px;border:2px solid var(--line);border-radius:16px;background:var(--bg);padding:10px 14px;resize:vertical}
 .nav{display:grid;grid-template-columns:1fr .8fr 1.35fr;gap:8px;margin-top:22px}.nav .btn{padding-left:8px;padding-right:8px;white-space:nowrap}.nav .btn:disabled{opacity:.4}
 .note{font-size:13px;color:var(--muted)}
@@ -487,7 +492,14 @@ const PLANT_GROUPS=[
 ];
 const PLANT_ITEMS=PLANT_GROUPS.flatMap(g=>g.items);
 function leafSvg(cls){const L=[[0,1],[30,.84],[-30,.84],[60,.66],[-60,.66],[100,.38],[-100,.38]];const p=L.map(([a,k])=>{const l=44*k,w=10*k;return '<path transform="rotate('+a+')" d="M0,0 Q'+w+','+(-l*.55)+' 0,'+(-l)+' Q'+(-w)+','+(-l*.55)+' 0,0Z"/>'}).join('');return '<svg class="leaf'+(cls?' '+cls:'')+'" viewBox="-34 -46 68 62" fill="currentColor" aria-hidden="true"><g transform="translate(0,6)">'+p+'<path d="M0,0 L0,11" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" fill="none"/></g></svg>'}
-const SEV=['None','Trace','Scattered','Widespread','Heavy'];
+const SEV=['None','Low','Low','Moderate','High','High'];
+const SEV_LVL=[0,1,2,3,4,4];function sevLvl(v){return SEV_LVL[Math.max(0,Math.min(5,+v||0))]}
+function sevText(v){v=+v||0;return v?v+' · '+SEV[Math.min(5,v)]:'None'}
+function findText(v){v=+v||0;return v?sevText(v):'Found'}
+function itemFound(pl,k){return !!pl&&pl.s==='issue'&&(!!(pl.f&&pl.f[k])||(+((pl.v||{})[k])||0)>0)}
+function plantHit(pl){return PLANT_ITEMS.some(i=>itemFound(pl,i.k))}
+const CHECK_SVG='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const SEV_OLD=[0,1,3,4,5];function migSev(){Object.entries(walks).forEach(([id,w])=>{if(!w||w.sc===5)return;Object.values(w.cards||{}).forEach(cd=>Object.values((cd&&cd.p)||{}).forEach(pl=>{if(pl&&pl.v)Object.keys(pl.v).forEach(k=>{pl.v[k]=SEV_OLD[Math.max(0,Math.min(4,+pl.v[k]||0))]})}));w.sc=5;touch(id)})}
 const LS_KEY='zonescout.v1';
 const STRAINS=[
  {k:'space-cake',n:'Space Cake',type:'Indica-dominant hybrid, about 65/35',lineage:'GSC Forum Cut × Snow Lotus',breeder:'Bodhi Seeds',flower:'8–9 weeks indoors',thc:'20–25%',terps:['Caryophyllene','Limonene','Myrcene'],
@@ -562,7 +574,7 @@ function plantMax(pl){if(!pl||pl.s!=='issue')return 0;return Math.max(0,...PLANT
 function cardDone(cd,n){n=n||curPlants();if(!cd||!cd.ce)return false;for(let p=1;p<=n;p++)if(!plantDone(cd.p?.['P'+p]))return false;return true}
 function walkProgress(w){let cards=0,plants=0;const n=plantsFor(w.zone);const sk=skipSet(w);for(let h=1;h<=housesFor(w.zone);h++)for(let c=1;c<=CARDS;c++){if(sk.has(key(h,c)))continue;const cd=w.cards?.[key(h,c)];if(cardDone(cd,n))cards++;for(let p=1;p<=n;p++)if(plantDone(cd?.p?.['P'+p]))plants++}return{cards,plants}}
 function walkTotals(w){const t={};CARD_ITEMS.forEach(i=>t[i.k]=0);const inc={};PLANT_ITEMS.forEach(i=>inc[i.k]=0);let findings=0;
-  Object.values(w.cards||{}).forEach(cd=>{CARD_ITEMS.forEach(i=>t[i.k]+=(+cd.c?.[i.k]||0));Object.values(cd.p||{}).forEach(pl=>{if(pl.s==='issue'){let any=false;PLANT_ITEMS.forEach(i=>{if((+pl.v?.[i.k]||0)>0){inc[i.k]++;any=true}});if(any)findings++}})});
+  Object.values(w.cards||{}).forEach(cd=>{CARD_ITEMS.forEach(i=>t[i.k]+=(+cd.c?.[i.k]||0));Object.values(cd.p||{}).forEach(pl=>{if(pl.s==='issue'){let any=false;PLANT_ITEMS.forEach(i=>{if(itemFound(pl,i.k)){inc[i.k]++;any=true}});if(any)findings++}})});
   return{t,inc,findings,catches:Object.values(t).reduce((a,b)=>a+b,0)}}
 
 /* saving */
@@ -609,9 +621,9 @@ function binCount(v,b){if(v<=0)return 0;if(v<=b[0])return 1;if(v<=b[1])return 2;
 function cellMetric(cd,m,n){n=n||5;
   if(m==='cardTotal'){const v=cardTotal(cd);return{v,l:binCount(v,[5,15,40]),legend:['0','1–5','6–15','16–40','41+']}}
   if(m.startsWith('card:')){const v=+cd?.c?.[m.slice(5)]||0;return{v,l:binCount(v,[2,8,20]),legend:['0','1–2','3–8','9–20','21+']}}
-  if(m==='plantsHit'){let v=0;for(let p=1;p<=n;p++)if(plantMax(cd?.p?.['P'+p])>0)v++;const t=[Math.ceil(n*.2),Math.ceil(n*.4),Math.ceil(n*.6)];const r=(a,b)=>a===b?String(a):a+'–'+b;return{v,l:binCount(v,t),legend:['0',r(1,t[0]),r(t[0]+1,t[1]),r(t[1]+1,t[2]),r(t[2]+1,n)]}}
-  const k=m.slice(6);let v=0;for(let p=1;p<=n;p++){const pl=cd?.p?.['P'+p];if(pl&&pl.s==='issue')v=Math.max(v,+pl.v?.[k]||0)}
-  return{v,l:v,legend:SEV,sev:true};
+  if(m==='plantsHit'){let v=0;for(let p=1;p<=n;p++)if(plantHit(cd?.p?.['P'+p]))v++;const t=[Math.ceil(n*.2),Math.ceil(n*.4),Math.ceil(n*.6)];const r=(a,b)=>a===b?String(a):a+'–'+b;return{v,l:binCount(v,t),legend:['0',r(1,t[0]),r(t[0]+1,t[1]),r(t[1]+1,t[2]),r(t[2]+1,n)]}}
+  const k=m.slice(6);let v=0,fd=false;for(let p=1;p<=n;p++){const pl=cd?.p?.['P'+p];if(pl&&pl.s==='issue')v=Math.max(v,+pl.v?.[k]||0);if(itemFound(pl,k))fd=true}
+  return{v:v||(fd?'✓':0),l:v?sevLvl(v):fd?1:0,legend:['None','1 Low or ✓ found','2 Low','3 Moderate','4–5 High'],sev:true};
 }
 
 /* views */
@@ -662,7 +674,7 @@ function viewWalk(){
   {const mc=maps[w.zone]?mapCultivars(w.zone):[];if(mc.length)h+='<div class="map-line"><span class="dots">'+mc.map(a=>'<i style="background:var(--m'+a.color+')"></i>').join('')+'</span><span class="t">'+mc.map(a=>esc(a.name)+' '+a.pct+'%').join(' · ')+'</span><button class="linkish" data-act="mapopen" data-k="'+w.zone+'">Map</button></div>'}
   h+='<div class="strain-pick"><label for="wstrain">Cultivar</label>'+strainSelect('wstrain',w.strain||'')+'</div>';
   if(st&&st.watch.length)h+='<div class="watch"><b>Watch for in '+esc(st.n)+':</b> '+st.watch.map(x=>esc(itemName(x.i))).join(', ')+'. <button class="linkish" data-act="strain" data-k="'+st.k+'">Details</button></div>';
-  {const za=computeAlerts().filter(a=>a.zone===w.zone&&a.date<w.date);if(za.length)h+='<div class="watch"><b>Rechecks for this zone:</b>'+za.map(a=>'<div style="margin-top:4px">'+esc(itemName(a.k))+' ('+SEV[a.sev]+', '+esc(fmtShort(a.date))+') on '+[...new Set(a.locs.map(l=>l.split(' ')[0]))].map(ck=>'<button class="linkish" data-act="card" data-k="'+ck+'">'+ck.replace('C',' C')+'</button>').join(' ')+'</div>').join('')+'</div>'}
+  {const za=computeAlerts().filter(a=>a.zone===w.zone&&a.date<w.date);if(za.length)h+='<div class="watch"><b>Rechecks for this zone:</b>'+za.map(a=>'<div style="margin-top:4px">'+esc(itemName(a.k))+' ('+findText(a.sev)+', '+esc(fmtShort(a.date))+') on '+[...new Set(a.locs.map(l=>l.split(' ')[0]))].map(ck=>'<button class="linkish" data-act="card" data-k="'+ck+'">'+ck.replace('C',' C')+'</button>').join(' ')+'</div>').join('')+'</div>'}
   {const po=plantOn(w.zone,w.date);if(po){const p=po[1];h+='<div class="last-spray">'+sproutSvg()+'<span><b>'+esc((strainOf(p.cultivar)||{n:p.cultivar}).n)+'</b> in Zone '+w.zone+': day '+(dayDiff(p.planted,w.date)+1)+' since planting'+(p.flip&&p.flip<=w.date?', day '+(dayDiff(p.flip,w.date)+1)+' of flower':'')+'</span><button class="linkish" data-act="plantopen" data-id="'+esc(po[0])+'">Open</button></div>'}}
   h+=reiBox(zoneREI(w.zone));
   const ls=lastSprayInZone(w.zone,w.date);
@@ -675,11 +687,11 @@ function viewWalk(){
     let dots='';if(NP<=5){for(let pp=1;pp<=NP;pp++)dots+='<i class="'+(plantDone(cd?.p?.['P'+pp])?'on':'')+'"></i>'}else{let dn=0;for(let pp=1;pp<=NP;pp++)if(plantDone(cd?.p?.['P'+pp]))dn++;dots='<span class="pb"><b style="width:'+(dn/NP*100)+'%"></b></span>'}
     h+='<button class="cell l'+m.l+(done?'':' todo')+'" data-act="card" data-k="'+k+'" aria-label="House '+hh+' card '+c+', value '+m.v+(done?'':', not finished')+'"><span class="v">'+(m.sev?(m.v?m.v:'–'):m.v)+'</span><span class="pd">'+dots+'</span></button>'}}
   h+='</div></div><div class="legend">'+legend.map((t,i)=>'<span><i class="l'+i+'"></i>'+esc(t)+'</span>').join('')+'<span>· dots = plants checked · dashed = unfinished'+(sk.size?' · hatched = empty spot, skipped':'')+'</span></div><p class="note" style="margin-top:6px">Empty houses or sections? <button class="linkish" data-act="mapopen" data-k="'+w.zone+'">Mark them on the zone map</button></p>';
-  const flags=[];Object.entries(w.cards||{}).forEach(([k,cd])=>Object.entries(cd.p||{}).forEach(([pk,pl])=>{if(pl.s!=='issue')return;PLANT_ITEMS.forEach(i=>{const v=+pl.v?.[i.k]||0;if(v>0)flags.push({k,pk,i,v,note:pl.n})})}));
+  const flags=[];Object.entries(w.cards||{}).forEach(([k,cd])=>Object.entries(cd.p||{}).forEach(([pk,pl])=>{if(pl.s!=='issue')return;PLANT_ITEMS.forEach(i=>{const v=+pl.v?.[i.k]||0;if(itemFound(pl,i.k))flags.push({k,pk,i,v,note:pl.n})})}));
   flags.sort((a,b)=>b.v-a.v);
   h+='<h2>Plant findings</h2>';
   if(!flags.length)h+='<div class="empty">'+leafSvg()+'<span>No plant findings yet. Happy plants so far.</span></div>';
-  else{h+='<div class="flags">';flags.slice(0,30).forEach(f=>{h+='<button class="flag" data-act="card" data-k="'+f.k+'"><span class="loc">'+f.k.replace('H','H').replace('C',' C')+' '+f.pk+'</span><span class="what">'+esc(f.i.n)+'</span><span class="pill l'+f.v+'">'+SEV[f.v]+'</span></button>'});if(flags.length>30)h+='<p class="note">'+(flags.length-30)+' more lower-severity findings.</p>';h+='</div>'}
+  else{h+='<div class="flags">';flags.slice(0,30).forEach(f=>{h+='<button class="flag" data-act="card" data-k="'+f.k+'"><span class="loc">'+f.k.replace('H','H').replace('C',' C')+' '+f.pk+'</span><span class="what">'+esc(f.i.n)+'</span><span class="pill '+(f.v?'l'+sevLvl(f.v):'fnd')+'">'+findText(f.v)+'</span></button>'});if(flags.length>30)h+='<p class="note">'+(flags.length-30)+' more lower-severity findings.</p>';h+='</div>'}
   h+='<h2>Card catches this walk</h2><div class="tbl-wrap"><table><tbody>'+CARD_ITEMS.map(i=>'<tr><td>'+esc(i.n)+'</td><td>'+tt.t[i.k]+'</td></tr>').join('')+'</tbody></table></div>';
   h+='<div class="nav"><button class="btn" data-act="export">Export CSV</button><button class="btn primary" data-act="nextopen">'+(p.cards<walkCardsTotal(w)?'Next unfinished card':'All cards done')+'</button></div>';
   h+='<div style="margin-top:24px">'+(state.wDateEdit?'<div class="panel"><div class="field"><label for="wdate">Walk date</label><input id="wdate" type="date" value="'+esc(w.date)+'"></div><p class="note" style="margin:8px 0 0">Moves this walk and everything logged in it to the new date. Rechecks and trends follow.</p><div class="row" style="margin-top:10px"><button class="btn primary" data-act="wdatesave">Save date</button><button class="btn ghost" data-act="wdatecancel">Cancel</button></div></div>':'<button class="btn ghost block" data-act="wdate">Change walk date</button>')+(w.dateChangedFrom?'<p class="note" style="margin-top:6px">Originally logged for '+esc(fmtDate(w.dateChangedFrom))+'.</p>':'')+'</div>';
@@ -705,8 +717,8 @@ function viewCard(){
   h+='<h2>Plants</h2><div style="margin-bottom:10px"><button class="btn block" data-act="allclean">Mark unchecked plants clean</button></div><div class="list">';
   const NP=plantsFor(w.zone);
   for(let p=1;p<=NP;p++){const pk='P'+p,pl=cd.p?.[pk];const s=pl?.s;const mx=plantMax(pl);
-    h+='<div class="plant '+(s||'')+'"><div class="plant-head"><span class="pn">'+leafSvg()+'Plant '+p+'</span><span class="st">'+(s==='clean'?'Clean, roots checked':s==='issue'?(mx?'Worst: '+SEV[mx]:'Pick what you found'):'Not checked')+'</span><button class="btn'+(s==='clean'?' on':'')+'" data-act="pclean" data-k="'+pk+'">Clean</button><button class="btn warn'+(s==='issue'?' on':'')+'" data-act="pissue" data-k="'+pk+'">Found</button></div>';
-    if(s==='issue'){PLANT_GROUPS.forEach(g=>{h+='<div class="grp">'+esc(g.label)+'</div>';g.items.forEach(i=>{const v=+pl.v?.[i.k]||0;h+='<div class="item"><div class="nm">'+esc(i.n)+infoBtn('plant',i.k)+'</div><div class="seg" role="group" aria-label="'+esc(i.n)+' severity">'+SEV.map((sn,si)=>'<button class="s'+si+(v===si?' sel':'')+'" data-act="sev" data-k="'+pk+'" data-i="'+i.k+'" data-v="'+si+'" aria-pressed="'+(v===si)+'"><span class="k">'+si+'</span>'+sn+'</button>').join('')+'</div></div>'})});
+    h+='<div class="plant '+(s||'')+'"><div class="plant-head"><span class="pn">'+leafSvg()+'Plant '+p+'</span><span class="st">'+(s==='clean'?'Clean, roots checked':s==='issue'?(mx?'Worst: '+sevText(mx):plantHit(pl)?'Found, no severity':'Pick what you found'):'Not checked')+'</span><button class="btn'+(s==='clean'?' on':'')+'" data-act="pclean" data-k="'+pk+'" aria-pressed="'+(s==='clean')+'">Clean</button><button class="btn warn'+(s==='issue'?' on':'')+'" data-act="pissue" data-k="'+pk+'">Found</button></div>';
+    if(s==='issue'){PLANT_GROUPS.forEach(g=>{h+='<div class="grp">'+esc(g.label)+'</div>';g.items.forEach(i=>{const v=+pl.v?.[i.k]||0;const fd=itemFound(pl,i.k);h+='<div class="item'+(fd?' fd':'')+'"><div class="nm"><button class="fbox'+(fd?' on':'')+'" data-act="ifound" data-k="'+pk+'" data-i="'+i.k+'" role="checkbox" aria-checked="'+fd+'" aria-label="'+esc(i.n)+' found">'+(fd?CHECK_SVG:'')+'</button><span class="nmt">'+esc(i.n)+'</span>'+infoBtn('plant',i.k)+'</div><div class="seg" role="group" aria-label="'+esc(i.n)+' severity">'+SEV.map((sn,si)=>'<button class="s'+si+((fd&&!v?-1:v)===si?' sel':'')+'" data-act="sev" data-k="'+pk+'" data-i="'+i.k+'" data-v="'+si+'" aria-pressed="'+((fd&&!v?-1:v)===si)+'"><span class="k">'+si+'</span>'+sn+'</button>').join('')+'</div></div>'})});
       h+='<label class="note" for="n_'+pk+'">Note</label><textarea id="n_'+pk+'" data-inp="note" data-k="'+pk+'" placeholder="Where on the plant, life stage, anything to recheck">'+esc(pl.n||'')+'</textarea>'}
     h+='</div>'}
   h+='</div>';
@@ -1055,7 +1067,7 @@ function guideOf(k){return GUIDE.find(g=>g.k===k)||null}
 function infoBtn(src,k){const g=GUIDE_MAP[src][k];return g?'<button class="info" data-act="guide" data-k="'+g+'" aria-label="About this pest">?</button>':''}
 function guideLogs(g){let catches=0,plants=0,last=null;Object.values(walks).forEach(w=>{if(!w)return;let hit=false;
   Object.values(w.cards||{}).forEach(cd=>{if(g.log.card){const v=+cd.c?.[g.log.card]||0;catches+=v;if(v)hit=true}
-    if(g.log.plant)Object.values(cd.p||{}).forEach(pl=>{if(pl.s==='issue'&&(+pl.v?.[g.log.plant]||0)>0){plants++;hit=true}})});
+    if(g.log.plant)Object.values(cd.p||{}).forEach(pl=>{if(itemFound(pl,g.log.plant)){plants++;hit=true}})});
   if(hit&&(!last||w.date>last))last=w.date});return{catches,plants,last}}
 function viewGuide(){
   const f=state.guideFilter||'All';const kinds=['All','Insect','Mite','Disease'];
@@ -1387,7 +1399,7 @@ const RECHECK=[
   {k:'rrot',d:3,src:'bc',basis:'No published figure used. Root rot can move through a room quickly, so the recheck is kept short on purpose.'}
 ];
 function recheckDays(k){const r=RECHECK.find(x=>x.k===k);const o=+((alertCfg.intervals||{})[k]);return o>0?o:(r?r.d:7)}
-function findingsIn(w,k){let sev=0;const locs=[];Object.entries(w.cards||{}).forEach(([ck,cd])=>{Object.entries(cd.p||{}).forEach(([pk,pl])=>{if(pl&&pl.s==='issue'){const v=+((pl.v||{})[k])||0;if(v>0){sev=Math.max(sev,v);locs.push(ck+' '+pk)}}})});return{sev,locs}}
+function findingsIn(w,k){let sev=0;const locs=[];Object.entries(w.cards||{}).forEach(([ck,cd])=>{Object.entries(cd.p||{}).forEach(([pk,pl])=>{if(pl&&pl.s==='issue'){const v=+((pl.v||{})[k])||0;if(itemFound(pl,k)){sev=Math.max(sev,v);locs.push(ck+' '+pk)}}})});return{sev,locs}}
 function coversLocs(w,locs){return [...new Set(locs.map(l=>l.split(' ')[0]))].every(ck=>cardDone((w.cards||{})[ck],plantsFor(w.zone)))}
 function computeAlerts(){
   const out=[];const byZone={};const t=today();
@@ -1397,42 +1409,42 @@ function computeAlerts(){
       ws.forEach(w=>{const f=findingsIn(w,r.k);if(f.locs.length){F={w,sev:f.sev,locs:f.locs};cleared=false}else if(F&&w.date>F.w.date&&coversLocs(w,F.locs))cleared=true});
       if(!F||cleared)return;
       const key=z+'|'+r.k+'|'+F.w.date;if((alertCfg.dismissed||{})[key])return;
-      const base=recheckDays(r.k);const urgent=F.sev>=3;const days=urgent?Math.max(1,Math.ceil(base/2)):base;
+      const base=recheckDays(r.k);const urgent=F.sev>=4;const days=urgent?Math.max(1,Math.ceil(base/2)):base;
       const due=(alertCfg.snooze||{})[key]||addDays(F.w.date,days);
       out.push({key,zone:+z,k:r.k,date:F.w.date,sev:F.sev,locs:F.locs,due,days,urgent,left:dayDiff(t,due)})})});
   return out.sort((a,b)=>a.due.localeCompare(b.due)||b.sev-a.sev);
 }
 function whenText(a){const d=new Date(a.due+'T00:00');return a.left<0?'Overdue by '+(-a.left)+' day'+(a.left===-1?'':'s')+' (was due '+fmtDay(d)+')':a.left===0?'Recheck today':a.left===1?'Recheck tomorrow':'Recheck in '+a.left+' days · '+fmtDay(d)}
 const BELL='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6z" fill="var(--sticky)" stroke="var(--sticky-ink)" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="19.6" r="2" fill="var(--sticky-ink)"/></svg>';
-function alertRow(a){return '<button class="al-row'+(a.left<=0?' due':'')+'" data-act="alertopen" data-k="'+esc(a.key)+'"><span class="al-z">Z'+a.zone+'</span><span class="al-t"><b>'+esc(itemName(a.k))+' · '+SEV[a.sev]+'</b><small>'+esc(whenText(a))+'</small></span></button>'}
+function alertRow(a){return '<button class="al-row'+(a.left<=0?' due':'')+'" data-act="alertopen" data-k="'+esc(a.key)+'"><span class="al-z">Z'+a.zone+'</span><span class="al-t"><b>'+esc(itemName(a.k))+' · '+findText(a.sev)+'</b><small>'+esc(whenText(a))+'</small></span></button>'}
 function alertsPanel(){const al=computeAlerts();if(!al.length)return '';const due=al.filter(a=>a.left<=0);const show=(due.length?due:al).slice(0,4);
   return '<div class="alerts"><div class="al-hd">'+BELL+'<b>'+(due.length?due.length+' recheck'+(due.length===1?'':'s')+' due':al.length+' upcoming recheck'+(al.length===1?'':'s'))+'</b><button class="linkish" data-act="alerts">See all</button></div>'+show.map(alertRow).join('')+'</div>'}
 function alertId(key){return 'al_'+key.replace(/[^a-z0-9]/gi,'_')}
 function alertCard(a){const g=guideOf(GUIDE_MAP.plant[a.k]);const cards=[...new Set(a.locs.map(l=>l.split(' ')[0]))];
-  return '<div class="al-card'+(a.left<=0?' due':'')+'" id="'+alertId(a.key)+'"><div class="al-top">'+(g?'<span class="al-art">'+artSvg(g.k)+'</span>':'')+'<div><b>Zone '+a.zone+' · '+esc(itemName(a.k))+'</b><div class="note">'+SEV[a.sev]+' on '+a.locs.length+' plant'+(a.locs.length===1?'':'s')+' on '+esc(fmtShort(a.date))+' ('+cards.map(c=>c.replace('C',' C')).join(', ')+')</div><div class="al-when">'+esc(whenText(a))+'</div></div></div>'
-   +(a.urgent?'<p class="note" style="margin:8px 0 0"><b style="color:var(--bad)">Widespread or heavy:</b> recheck set to half the usual interval. Treat now.</p>':'<p class="note" style="margin:8px 0 0">Set '+a.days+' day'+(a.days===1?'':'s')+' after the finding, when the population is expected to have grown.</p>')
+  return '<div class="al-card'+(a.left<=0?' due':'')+'" id="'+alertId(a.key)+'"><div class="al-top">'+(g?'<span class="al-art">'+artSvg(g.k)+'</span>':'')+'<div><b>Zone '+a.zone+' · '+esc(itemName(a.k))+'</b><div class="note">'+findText(a.sev)+' on '+a.locs.length+' plant'+(a.locs.length===1?'':'s')+' on '+esc(fmtShort(a.date))+' ('+cards.map(c=>c.replace('C',' C')).join(', ')+')</div><div class="al-when">'+esc(whenText(a))+'</div></div></div>'
+   +(a.urgent?'<p class="note" style="margin:8px 0 0"><b style="color:var(--bad)">High (4–5):</b> recheck set to half the usual interval. Treat now.</p>':'<p class="note" style="margin:8px 0 0">Set '+a.days+' day'+(a.days===1?'':'s')+' after the finding, when the population is expected to have grown.</p>')
    +'<div class="row" style="margin-top:10px"><button class="btn primary" data-act="alertwalk" data-k="'+esc(a.key)+'">Walk Zone '+a.zone+'</button><button class="btn ghost" data-act="asnooze" data-k="'+esc(a.key)+'">Snooze 1 day</button><button class="btn ghost" data-act="adismiss" data-k="'+esc(a.key)+'">Dismiss</button></div></div>'}
 function viewAlerts(){const al=computeAlerts();
   let h='<h1>Rechecks</h1><p class="sub">When you mark a pest or disease as Found on a plant, Zone Scout works out when that zone should be walked again from how fast it spreads.</p>';
   h+=al.length?'<div class="list">'+al.map(alertCard).join('')+'</div>':'<div class="empty">'+leafSvg()+'<span>No open rechecks. A recheck appears when you flag something on a plant, and clears when a later walk finishes those cards without finding it again.</span></div>';
   h+=notifyPanel();
-  h+='<h2>'+leafSvg()+'Recheck intervals</h2><p class="note" style="margin-bottom:8px">Days after a Trace or Scattered finding. Widespread or Heavy findings get half, at least 1 day. Type your own number to match your facility; clear it to go back to the default.</p><div class="panel">'+RECHECK.map(r=>'<div class="ri-row"><label for="ri_'+r.k+'">'+esc(itemName(r.k))+'</label><input id="ri_'+r.k+'" type="number" inputmode="numeric" min="1" max="30" data-ri="'+r.k+'" value="'+esc((alertCfg.intervals||{})[r.k]||'')+'" placeholder="'+r.d+'"><span class="note">days</span></div>').join('')+'</div>';
+  h+='<h2>'+leafSvg()+'Recheck intervals</h2><p class="note" style="margin-bottom:8px">Days after a low or moderate finding (1–3). High findings (4–5) get half, at least 1 day. Type your own number to match your facility; clear it to go back to the default.</p><div class="panel">'+RECHECK.map(r=>'<div class="ri-row"><label for="ri_'+r.k+'">'+esc(itemName(r.k))+'</label><input id="ri_'+r.k+'" type="number" inputmode="numeric" min="1" max="30" data-ri="'+r.k+'" value="'+esc((alertCfg.intervals||{})[r.k]||'')+'" placeholder="'+r.d+'"><span class="note">days</span></div>').join('')+'</div>';
   h+='<h2>Why these numbers</h2><ul class="grow">'+RECHECK.map(r=>'<li><b>'+esc(itemName(r.k))+', '+r.d+' days.</b> '+esc(r.basis)+'</li>').join('')+'</ul><p class="note" style="margin-top:10px">Lab rates were measured at steady temperatures near 25 °C. Cooler rooms usually slow pests down, so these dates lean early.</p>';
   h+='<h2>Sources</h2><ul class="grow src">'+[...new Set(RECHECK.map(r=>r.src))].map(s=>{const x=GSRC[s];return '<li>'+(x[1]?'<a href="'+esc(x[1])+'" target="_blank" rel="noopener">'+esc(x[0])+'</a>':esc(x[0]))+'</li>'}).join('')+'</ul>';
   return h}
 function prevCardFindings(w,ck){const prev=Object.values(walks).filter(x=>x&&x.zone===w.zone&&x.date<w.date).sort((a,b)=>b.date.localeCompare(a.date));
-  for(const x of prev){const cd=(x.cards||{})[ck];if(!cd)continue;const hits=[];Object.entries(cd.p||{}).forEach(([pk,pl])=>{if(pl&&pl.s==='issue')PLANT_ITEMS.forEach(i=>{const v=+((pl.v||{})[i.k])||0;if(v>0)hits.push(i.n+' ('+SEV[v]+') on '+pk)})});
+  for(const x of prev){const cd=(x.cards||{})[ck];if(!cd)continue;const hits=[];Object.entries(cd.p||{}).forEach(([pk,pl])=>{if(pl&&pl.s==='issue')PLANT_ITEMS.forEach(i=>{const v=+((pl.v||{})[i.k])||0;if(itemFound(pl,i.k))hits.push(i.n+' ('+(v?sevText(v):'found')+') on '+pk)})});
     if(hits.length||cardDone(cd,plantsFor(x.zone)))return{date:x.date,hits}}return null}
 function alertAction(a,b){
   const al=computeAlerts().find(x=>x.key===b.dataset.k);
   if(a==='alertopen'){go('alerts');setTimeout(()=>{const el=document.getElementById(alertId(b.dataset.k));if(el)el.scrollIntoView({block:'center'})},30);return}
   if(!al)return;
-  if(a==='alertwalk'){const z=al.zone,d=today(),id=d+'_Z'+z;if(!walks[id]){walks[id]={zone:z,date:d,strain:((plantOn(z,d)||[])[1]||{}).cultivar||zoneMap[z]||null,createdAt:Date.now(),updatedAt:Date.now(),cards:{}};touch(id)}state.walkId=id;state.card=al.locs[0].split(' ')[0];return go('card')}
+  if(a==='alertwalk'){const z=al.zone,d=today(),id=d+'_Z'+z;if(!walks[id]){walks[id]={zone:z,date:d,strain:((plantOn(z,d)||[])[1]||{}).cultivar||zoneMap[z]||null,createdAt:Date.now(),updatedAt:Date.now(),sc:5,cards:{}};touch(id)}state.walkId=id;state.card=al.locs[0].split(' ')[0];return go('card')}
   if(a==='asnooze'){alertCfg.snooze=alertCfg.snooze||{};alertCfg.snooze[al.key]=addDays(al.due>today()?al.due:today(),1);saveDoc('config/alerts');toast('Snoozed to '+fmtDay(new Date(alertCfg.snooze[al.key]+'T00:00')));return render()}
   if(a==='adismiss'){alertCfg.dismissed=alertCfg.dismissed||{};alertCfg.dismissed[al.key]=true;saveDoc('config/alerts');toast('Dismissed. A new finding brings it back.');return render()}
 }
 /* ---------- phone reminders (installed app only) ---------- */
-function alertMsg(a){return{title:'Recheck Zone '+a.zone,body:itemName(a.k)+' ('+SEV[a.sev]+') was found on '+fmtShort(a.date)+'. '+(a.urgent?'It was widespread, so recheck and treat.':'The population may have doubled since.')}}
+function alertMsg(a){return{title:'Recheck Zone '+a.zone,body:itemName(a.k)+' ('+findText(a.sev)+') was found on '+fmtShort(a.date)+'. '+(a.urgent?'It was rated high, so recheck and treat.':'The population may have doubled since.')}}
 async function publishAlertsForSW(){try{if(!IDB.h)return;const al=prefs.notify?computeAlerts().map(a=>Object.assign({key:a.key,due:a.due},alertMsg(a))):[];await IDB.put('meta/alerts',al)}catch(e){}}
 async function notifyDue(){try{if(!prefs.notify||!('Notification' in window)||Notification.permission!=='granted'||!IDB.h||!navigator.serviceWorker)return;const reg=await navigator.serviceWorker.getRegistration();if(!reg)return;
   const sent=(await IDB.get('meta/notified'))||{};const t=today();let ch=false;
@@ -1591,7 +1603,7 @@ function viewMap(){
   const I=state.mapInfo;
   const MV=state.mapMoveCard;
   if(MV&&MV.z===z&&!state.mapPaint)h+='<div class="map-info">Tap the section in House '+MV.h+' where card <b>C'+(MV.i+1)+'</b> hangs. <button class="linkish" data-act="mcardcancel">Cancel</button></div>';
-  else if(I&&I.z===z&&I.card!=null&&!state.mapPaint){const p=cardPositions(m,I.h)[I.card];const lw=latestWalk(z);const ck='H'+I.h+'C'+(I.card+1);const cd=lw&&lw[1].cards&&lw[1].cards[ck];let txt;if(cd){const fl=Object.values(cd.p||{}).filter(pl=>plantMax(pl)>0).length;txt='Latest walk ('+esc(fmtShort(lw[1].date))+'): '+cardTotal(cd)+' caught, '+fl+' plant'+(fl===1?'':'s')+' flagged.'}else txt=lw?'Not scouted on the latest walk ('+esc(fmtShort(lw[1].date))+').':'No walks in this zone yet.';
+  else if(I&&I.z===z&&I.card!=null&&!state.mapPaint){const p=cardPositions(m,I.h)[I.card];const lw=latestWalk(z);const ck='H'+I.h+'C'+(I.card+1);const cd=lw&&lw[1].cards&&lw[1].cards[ck];let txt;if(cd){const fl=Object.values(cd.p||{}).filter(pl=>plantHit(pl)).length;txt='Latest walk ('+esc(fmtShort(lw[1].date))+'): '+cardTotal(cd)+' caught, '+fl+' plant'+(fl===1?'':'s')+' flagged.'}else txt=lw?'Not scouted on the latest walk ('+esc(fmtShort(lw[1].date))+').':'No walks in this zone yet.';
     h+='<div class="map-info"><b>Sticky card C'+(I.card+1)+'</b> · House '+I.h+' · trough'+(p.span===2?'s '+(p.t+1)+'–'+(p.t+2):' '+(p.t+1))+' · section '+(p.s+1)+(p.moved?'':' (default spot)')+'<div class="note" style="margin-top:4px">'+(cardSpotEmpty(m,I.h,p)?'This spot is marked empty, so the card is skipped on walks. ':'')+txt+'</div><div class="row" style="margin-top:8px"><button class="btn ghost" data-act="mcardmove">Move card</button>'+(cd?'<button class="btn ghost" data-act="mcardwalk" data-k="'+esc(lw[0])+'">Open this card</button>':'')+'</div></div>'}
   else if(I&&I.z===z&&!state.mapPaint){const id=(m.cells[I.h]||[])[I.t*m.sections+I.s]||'';const a=m.areas.find(x=>x.id===id);h+='<div class="map-info">House '+I.h+' · trough '+(I.t+1)+' · section '+(I.s+1)+': <b>'+(cellEmpty(m,I.h,I.t,I.s)?'empty':a?esc(a.name):'not mapped')+'</b>'+(!cellEmpty(m,I.h,I.t,I.s)&&housePlantsOf(m,I.h,H)?' <span class="note">('+fmtPlants(housePlantsOf(m,I.h,H)/(houseLive(m,I.h)||1))+' plants per section in this house)</span>':'')+'</div>'}
   else if(!state.mapPaint)h+='<p class="note" style="margin-top:8px">Tap a section to see what’s there.'+(m.areas.length?' Tap <b>Paint areas</b> to change the map.':'')+'</p>';
@@ -1745,6 +1757,7 @@ function calAction(a,b){const now=new Date();let y=state.calY!=null?state.calY:n
   if(a==='calholopen'){state.calHolOpen=!state.calHolOpen;return}
   if(a==='calstart'){state.startDate=k;toast('Walk date set to '+fmtDate(k)+'. Pick a zone and start.');return go('home')}}
 function render(){
+  migSev();
   renderTop();
   const app=document.getElementById('app');
   app.innerHTML=state.view==='walk'?viewWalk():state.view==='card'?viewCard():state.view==='trends'?viewTrends():state.view==='strains'?viewStrains():state.view==='strain'?viewStrain():state.view==='guide'?viewGuide():state.view==='pest'?viewPest():state.view==='sprays'?viewSprays():state.view==='sprayform'?viewSprayForm():state.view==='calendar'?viewCalendar():state.view==='map'?viewMap():state.view==='alerts'?viewAlerts():state.view==='plantings'?viewPlantings():state.view==='plantform'?viewPlantForm():state.view==='settings'?viewSettings():viewHome();
@@ -1761,7 +1774,7 @@ function csvRows(list){
     if(cd.ce)CARD_ITEMS.forEach(i=>rows.push([w.date,an,w.zone,cv,h,c,'','sticky card',i.n,+cd.c?.[i.k]||0,'']));if(cd.n)rows.push([w.date,an,w.zone,cv,h,c,'','card note','','',cd.n]);
     for(let p=1;p<=plantsFor(w.zone);p++){const pl=cd.p?.['P'+p];if(!plantDone(pl))continue;
       if(pl.s==='clean')rows.push([w.date,an,w.zone,cv,h,c,p,'plant','clean',0,'']);
-      else{const hits=PLANT_ITEMS.filter(i=>(+pl.v?.[i.k]||0)>0);if(!hits.length)rows.push([w.date,an,w.zone,cv,h,c,p,'plant','clean',0,pl.n||'']);hits.forEach((i,ix)=>rows.push([w.date,an,w.zone,cv,h,c,p,'plant',i.n,+pl.v[i.k],ix===0?(pl.n||''):'']))}}}
+      else{const hits=PLANT_ITEMS.filter(i=>itemFound(pl,i.k));if(!hits.length)rows.push([w.date,an,w.zone,cv,h,c,p,'plant','clean',0,pl.n||'']);hits.forEach((i,ix)=>rows.push([w.date,an,w.zone,cv,h,c,p,'plant',i.n,(+(pl.v||{})[i.k]||'found'),ix===0?(pl.n||''):'']))}}}
     for(let h=1;h<=housesFor(w.zone);h++){const t=w.hn&&w.hn[h];if(t)rows.push([w.date,an,w.zone,cv,h,'','','house note','','',t])}});
   return rows.map(r=>r.map(v=>{const s=String(v);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}).join(',')).join('\n');
 }
@@ -1847,7 +1860,7 @@ document.addEventListener('click',e=>{
     if(!ZONES.includes(z)){toast('Pick a zone from the list.');return}
     {const zr=zoneREI(z);if(zr.length)toast('Zone '+z+' is in a re-entry period until '+fmtWhen(zr[0].until)+'.')}
     state.startZone=z;state.startDate=d;const id=d+'_Z'+z;
-    if(!walks[id]){walks[id]={zone:z,date:d,strain:((plantOn(z,d)||[])[1]||{}).cultivar||zoneMap[z]||null,createdAt:Date.now(),updatedAt:Date.now(),cards:{}};touch(id)}else saveLocal();
+    if(!walks[id]){walks[id]={zone:z,date:d,strain:((plantOn(z,d)||[])[1]||{}).cultivar||zoneMap[z]||null,createdAt:Date.now(),updatedAt:Date.now(),sc:5,cards:{}};touch(id)}else saveLocal();
     state.walkId=id;syncSkip(id);const nx=firstOpen(walks[id]);if(nx){state.card=nx;go('card')}else go('walk');return}
   if(a==='open'){state.walkId=b.dataset.id;return go('walk')}
   if(a==='card'){state.card=b.dataset.k;return go('card')}
@@ -1867,9 +1880,10 @@ document.addEventListener('click',e=>{
   const cd=state.card?getCard(w,state.card):null;
   if(a==='step'){const k=b.dataset.k;cd.c[k]=Math.max(0,(+cd.c[k]||0)+(+b.dataset.d));cd.ce=true;touch(state.walkId);render();return}
   if(a==='nocatch'){CARD_ITEMS.forEach(i=>cd.c[i.k]=0);cd.ce=true;touch(state.walkId);render();return}
-  if(a==='pclean'){cd.p[b.dataset.k]={s:'clean'};touch(state.walkId);render();return}
-  if(a==='pissue'){const pk=b.dataset.k;const old=cd.p[pk];cd.p[pk]={s:'issue',v:(old&&old.v)||{},n:(old&&old.n)||''};touch(state.walkId);render();return}
-  if(a==='sev'){const pl=cd.p[b.dataset.k];pl.v=pl.v||{};pl.v[b.dataset.i]=+b.dataset.v;touch(state.walkId);render();return}
+  if(a==='pclean'){const pk=b.dataset.k;if(cd.p[pk]&&cd.p[pk].s==='clean')delete cd.p[pk];else cd.p[pk]={s:'clean'};touch(state.walkId);render();return}
+  if(a==='pissue'){const pk=b.dataset.k;const old=cd.p[pk];cd.p[pk]={s:'issue',v:(old&&old.v)||{},f:(old&&old.f)||{},n:(old&&old.n)||''};touch(state.walkId);render();return}
+  if(a==='ifound'){const pl=cd.p[b.dataset.k];if(!pl)return;const ik=b.dataset.i;pl.f=pl.f||{};pl.v=pl.v||{};if(itemFound(pl,ik)){delete pl.f[ik];pl.v[ik]=0}else pl.f[ik]=1;touch(state.walkId);render();return}
+  if(a==='sev'){const pl=cd.p[b.dataset.k];pl.v=pl.v||{};pl.v[b.dataset.i]=+b.dataset.v;if(!+b.dataset.v&&pl.f)delete pl.f[b.dataset.i];touch(state.walkId);render();return}
   if(a==='allclean'){let n=0;for(let p=1;p<=plantsFor(w.zone);p++){if(!plantDone(cd.p['P'+p])){cd.p['P'+p]={s:'clean'};n++}}if(n){touch(state.walkId);render()}toast(n?n+' plant'+(n===1?'':'s')+' marked clean':'All plants on this card are already checked');return}
   if(a==='prev'){const pv=prevCardKey(state.card);if(pv){state.card=pv;go('card')}return}
   if(a==='next'){if(!cardDone(cd)&&!skipSet(w).has(state.card))toast('Card left unfinished. It stays dashed on the grid.');const nx=nextCardKey(state.card);if(nx){state.card=nx;go('card')}else go('walk');return}
