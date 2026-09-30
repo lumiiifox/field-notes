@@ -25,7 +25,7 @@
   --h0:#E6F1E1; --h1:#FFF0A6; --h2:#FFC96B; --h3:#F48C5E; --h4:#DE5470;
   --h0-ink:#5B7A60; --h1-ink:#4A3D00; --h2-ink:#4A2E00; --h3-ink:#FFFFFF; --h4-ink:#FFFFFF;
   --ok:#3E8E4D; --warn:#D07A1C; --bad:#C9435E;
-  --m1:#2a78d6; --m2:#eb6834; --m3:#1baf7a; --m4:#eda100; --m5:#e87ba4; --m6:#008300; --m7:#4a3aa7; --m8:#e34948;
+  --m1:#2a78d6; --m2:#eb6834; --m3:#1baf7a; --m4:#eda100; --m5:#e87ba4; --m6:#008300; --m7:#4a3aa7; --m8:#e34948; --sv-l:#F2A15F; --sv-m:#D9692A; --sv-h:#A8420F; --sv-u:#8FA392;
   --shadow:0 2px 0 rgba(46,95,55,.08),0 6px 18px rgba(46,95,55,.07);
   --display:"Fredoka","Nunito","Arial Rounded MT Bold",system-ui,sans-serif;
   --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -41,7 +41,7 @@
     --h0:#1F2F23; --h1:#57502A; --h2:#8A6426; --h3:#A6512F; --h4:#B23B55;
     --h0-ink:#9BB99F; --h1-ink:#F7EDBC; --h2-ink:#FFF1D2; --h3-ink:#FFFFFF; --h4-ink:#FFFFFF;
     --ok:#7FD28C; --warn:#EFA84A; --bad:#F27D95;
-   --m1:#3987e5; --m2:#d95926; --m3:#199e70; --m4:#c98500; --m5:#d55181; --m6:#008300; --m7:#9085e9; --m8:#e66767;
+   --m1:#3987e5; --m2:#d95926; --m3:#199e70; --m4:#c98500; --m5:#d55181; --m6:#008300; --m7:#9085e9; --m8:#e66767; --sv-l:#96501F; --sv-m:#CC6A2C; --sv-h:#F7A866; --sv-u:#6F8573;
     --shadow:0 2px 0 rgba(0,0,0,.25),0 6px 18px rgba(0,0,0,.2);
   }
 }
@@ -54,7 +54,7 @@
   --h0:#1F2F23; --h1:#57502A; --h2:#8A6426; --h3:#A6512F; --h4:#B23B55;
   --h0-ink:#9BB99F; --h1-ink:#F7EDBC; --h2-ink:#FFF1D2; --h3-ink:#FFFFFF; --h4-ink:#FFFFFF;
   --ok:#7FD28C; --warn:#EFA84A; --bad:#F27D95;
-   --m1:#3987e5; --m2:#d95926; --m3:#199e70; --m4:#c98500; --m5:#d55181; --m6:#008300; --m7:#9085e9; --m8:#e66767;
+   --m1:#3987e5; --m2:#d95926; --m3:#199e70; --m4:#c98500; --m5:#d55181; --m6:#008300; --m7:#9085e9; --m8:#e66767; --sv-l:#96501F; --sv-m:#CC6A2C; --sv-h:#F7A866; --sv-u:#6F8573;
   --shadow:0 2px 0 rgba(0,0,0,.25),0 6px 18px rgba(0,0,0,.2);
 }
 *{box-sizing:border-box}
@@ -177,7 +177,7 @@ button:active{transform:scale(.97)}
 .seg button.sel.s4{background:var(--h4);color:var(--h4-ink);border-color:var(--h4)}
 .seg button.sel.s5{background:var(--h4);color:var(--h4-ink);border-color:var(--h4)}
 textarea{width:100%;min-height:64px;border:2px solid var(--line);border-radius:16px;background:var(--bg);padding:10px 14px;resize:vertical}
-.nav{display:grid;grid-template-columns:1fr .8fr 1.35fr;gap:8px;margin-top:22px}.nav .btn{padding-left:8px;padding-right:8px;white-space:nowrap}.nav .btn:disabled{opacity:.4}
+.nav{display:grid;grid-template-columns:1fr 1.4fr;gap:8px;margin-top:22px}.nav.three{grid-template-columns:1fr .8fr 1.35fr}.nav.three .btn{padding-left:8px;padding-right:8px;white-space:nowrap}.nav .btn:disabled{opacity:.4}
 .note{font-size:13px;color:var(--muted)}
 .confirm{display:flex;flex-direction:column;gap:10px;border:2px solid var(--bad);border-radius:20px;padding:16px;margin-top:10px;background:var(--pink-soft)}
 .tbl-wrap{overflow-x:auto;border:2px solid var(--line);border-radius:20px;background:var(--surface);box-shadow:var(--shadow)}
@@ -357,6 +357,43 @@ label.btn{cursor:pointer}
 .hempty .btn{flex:none;min-height:38px;padding:0 14px}
 .cell.skip{border:2px solid var(--line);color:var(--muted);background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--muted) 22%,transparent) 0 2px,transparent 2px 7px)}
 .skipnote{margin-top:12px;padding:12px 14px;border:2px dashed var(--muted);border-radius:16px;font-size:15px;line-height:1.45;background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--muted) 10%,transparent) 0 3px,transparent 3px 9px)}
+.pp{margin-top:10px;padding:14px 16px 10px}
+.pp-hd{display:flex;flex-direction:column;gap:2px;margin-bottom:4px}
+.pp-hd b{font-family:var(--display);font-size:17px}
+.pp-row{display:flex;flex-direction:column;gap:6px;width:100%;background:none;border:0;border-top:1px solid var(--line);padding:10px 0;text-align:left;color:inherit;font:inherit;cursor:pointer}
+.pp-hd+.pp-row{border-top:0}
+.pp-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.pp-name{font-weight:700;font-size:15px;min-width:0}
+.pp-val{display:flex;align-items:baseline;gap:6px;white-space:nowrap;flex:none}
+.pp-val b{font-size:16px}
+.pp-val small{font-size:12px;color:var(--muted);font-weight:600}
+.pp-row.zero .pp-name,.pp-row.zero .pp-val b{color:var(--muted)}
+.pp-track{position:relative;display:flex;height:14px;align-items:stretch;border-left:1px solid var(--line)}
+.pp-track.full{background:var(--sunk);border-radius:0 4px 4px 0}
+.pp-bar{display:block;height:100%;border-radius:0 4px 4px 0;background:var(--m1)}
+.pp-last{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--ink);opacity:.6;border-radius:1px}
+.pp-seg{display:block;height:100%;margin-right:2px}
+.pp-seg:last-child{border-radius:0 4px 4px 0;margin-right:0}
+.pp-seg.h{background:var(--sv-h)} .pp-seg.m{background:var(--sv-m)} .pp-seg.l{background:var(--sv-l)} .pp-seg.u{background:var(--sv-u)}
+.pp-legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 0 4px;font-size:12px;color:var(--muted)}
+.pp-legend span{display:inline-flex;align-items:center;gap:6px}
+.pp-legend i.pp-seg{width:12px;height:12px;border-radius:3px;margin:0}
+.pp-key{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin:6px 0 4px}
+.pp-lastkey{flex:none;display:inline-block;width:2px;height:14px;background:var(--ink);opacity:.6;border-radius:1px}
+.pp-houses{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 4px}
+.pp-houses span{font-size:13px;padding:5px 10px;border-radius:999px;background:var(--sunk);display:inline-flex;gap:6px;font-variant-numeric:tabular-nums}
+.pp-houses span.e{color:var(--muted);background:none;box-shadow:inset 0 0 0 1.5px var(--line)}
+.pp-unit{margin:0 0 8px;font-size:12px}
+.pp-hl{margin-top:10px;padding:2px 16px}
+.hrow{display:flex;align-items:center;gap:12px;width:100%;background:none;border:0;border-top:1px solid var(--line);padding:12px 0;text-align:left;color:inherit;font:inherit;cursor:pointer}
+.hrow:first-child{border-top:0}
+.hrow>b{font-family:var(--display);font-size:18px;color:var(--green);width:30px;flex:none}
+.hr-mid{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.hr-t{font-size:13px;color:var(--muted)}
+.hr-v{white-space:nowrap;text-align:right;font-weight:700;font-size:16px}
+.hr-v small{display:block;font-size:11px;font-weight:600;color:var(--muted)}
+.hr-go{color:var(--muted);font-size:22px;line-height:1}
+.hrow.e{color:var(--muted);cursor:default}.hrow.e>b{color:var(--muted)}.hrow.e span{font-size:14px}
 .cell .sk{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
 .pb-foot{display:flex;gap:8px;align-items:center}
 .pb-hint{flex:1;font-size:12.5px;color:var(--muted);line-height:1.3}
@@ -631,7 +668,7 @@ function renderTop(){
   const t=document.getElementById('topbar');const w=walks[state.walkId];let left='';
   if(state.view==='home')left='<div class="brand">'+leafSvg()+'Zone <em>Scout</em></div>';
   else if(state.view==='walk'&&w)left='<button class="back" data-act="home" aria-label="All walks">‹</button><div class="crumb">'+areaOf(w.zone).n+' · Zone '+w.zone+' · '+esc(fmtDate(w.date))+'</div>';
-  else if(state.view==='card'&&w){const [h,c]=state.card.match(/\d+/g);left='<button class="back" data-act="walk" aria-label="Back to grid">‹</button><div class="crumb">Z'+w.zone+' · House '+h+' · Card '+c+'</div>'}
+  else if(state.view==='card'&&w){const [h,c]=state.card.match(/\d+/g);left='<button class="back" data-act="walk" aria-label="Back to walk">‹</button><div class="crumb">Z'+w.zone+' · House '+h+' · Card '+c+'</div>'}
   else if(state.view==='strains')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Cultivars</div>';
   else if(state.view==='strain')left='<button class="back" data-act="strains" aria-label="All cultivars">‹</button><div class="crumb">'+esc((strainOf(state.strainKey)||{}).n||'Cultivar')+'</div>';
   else if(state.view==='settings')left='<button class="back" data-act="home" aria-label="Home">‹</button><div class="crumb">Backup &amp; lock</div>';
@@ -654,7 +691,7 @@ function viewHome(){
   const ar=areaOf(state.startZone);
   h+='<div class="panel"><div class="areas" role="group" aria-label="Area">'+AREAS.map(a=>'<button class="'+(a.k===ar.k?'on':'')+'" data-act="area" data-k="'+a.k+'" aria-pressed="'+(a.k===ar.k)+'">'+a.n+'<small>'+a.zones.length+' zone'+(a.zones.length===1?'':'s')+'</small></button>').join('')+'</div><div class="row" style="margin-top:12px"><div class="field"><label for="sz">Zone</label><select id="sz">'+ar.zones.map(z=>'<option value="'+z+'"'+(z===state.startZone?' selected':'')+'>Zone '+z+'</option>').join('')+'</select></div><div class="field"><label for="sd">Date</label><input id="sd" type="date" value="'+state.startDate+'"></div></div><div style="margin-top:12px"><button class="btn primary block" data-act="start">Start or resume walk</button></div></div>';
   h+='<h2>Walks</h2>';
-  if(!list.length)h+='<div class="empty">'+leafSvg()+'<span>No walks yet. Each walk is one zone on one day: 125 plants in Flower and 375 in Veg (25 cards each), 150 in Mothers (15 cards). Your grid, flags and trends fill in as you log.</span></div>';
+  if(!list.length)h+='<div class="empty">'+leafSvg()+'<span>No walks yet. Each walk is one zone on one day: 125 plants in Flower and 375 in Veg (25 cards each), 150 in Mothers (15 cards). Your pest pressure, flags and trends fill in as you log.</span></div>';
   else{AREAS.concat([{k:'other',n:'Other'}]).forEach(a=>{const rows=list.filter(([,w])=>areaOf(w.zone).k===a.k);if(!rows.length)return;
     h+='<div class="area-hd '+a.k+'">'+a.n+'</div><div class="list">';rows.slice(0,30).forEach(([id,w])=>{const p=walkProgress(w),tt=walkTotals(w);const wt=walkPlantsTotal(w);const pct=wt?Math.round(p.plants/wt*100):0;
     h+='<button class="walk" data-act="open" data-id="'+esc(id)+'"><span class="z">Z'+w.zone+'</span><span class="d">'+esc(fmtDate(w.date))+'</span><span class="pct">'+pct+'%</span><span class="m">'+(strainOf(w.strain)?esc(strainOf(w.strain).n)+' · ':'')+p.cards+'/'+walkCardsTotal(w)+' cards · '+tt.catches+' caught · '+tt.findings+' plants flagged'+(pending.has(id)?' · unsaved':'')+'</span></button>'});h+='</div>'})}
@@ -679,14 +716,7 @@ function viewWalk(){
   h+=reiBox(zoneREI(w.zone));
   const ls=lastSprayInZone(w.zone,w.date);
   h+='<div class="last-spray">'+dropSvg(ls?ls[1].method:'Other')+'<span>'+(ls?'Last spray in Zone '+w.zone+': <b>'+esc(ls[1].product.name)+'</b>'+((ls[1].targets||[]).length?' for '+ls[1].targets.map(k=>esc(targetName(k))).join(', '):'')+', '+esc(daysBefore(ls[1].date,w.date)):'No sprays logged for Zone '+w.zone+' before this walk')+'</span><button class="linkish" data-act="'+(ls?'sprayopen':'spraynew')+'"'+(ls?' data-id="'+esc(ls[0])+'"':'')+'>'+(ls?'Open':'Log one')+'</button>'+(ls?'<button class="linkish" data-act="spraynew">Log spray</button>':'')+'</div>';
-  h+='<h2>House × card grid</h2><div class="field" style="margin-bottom:10px"><label for="metric">Colour by</label><select id="metric">'+METRICS.map(m=>'<option value="'+m.k+'"'+(m.k===state.metric?' selected':'')+'>'+esc(m.n)+'</option>').join('')+'</select></div>';
-  h+='<div class="grid-wrap"><div class="heat"><div></div>';for(let c=1;c<=CARDS;c++)h+='<div class="hd">C'+c+'</div>';
-  let legend;const NP=plantsFor(w.zone);const sk=skipSet(w);
-  for(let hh=1;hh<=housesFor(w.zone);hh++){h+='<div class="rh">H'+hh+'</div>';for(let c=1;c<=CARDS;c++){const k=key(hh,c),cd=w.cards?.[k];const m=cellMetric(cd,state.metric,NP);legend=m.legend;const done=cardDone(cd);
-    if(sk.has(k)&&!(cd&&(cd.ce||Object.keys(cd.p||{}).length))){h+='<button class="cell skip" data-act="card" data-k="'+k+'" aria-label="House '+hh+' card '+c+', empty spot, skipped"><span class="v">–</span><span class="sk">empty</span></button>';continue}
-    let dots='';if(NP<=5){for(let pp=1;pp<=NP;pp++)dots+='<i class="'+(plantDone(cd?.p?.['P'+pp])?'on':'')+'"></i>'}else{let dn=0;for(let pp=1;pp<=NP;pp++)if(plantDone(cd?.p?.['P'+pp]))dn++;dots='<span class="pb"><b style="width:'+(dn/NP*100)+'%"></b></span>'}
-    h+='<button class="cell l'+m.l+(done?'':' todo')+'" data-act="card" data-k="'+k+'" aria-label="House '+hh+' card '+c+', value '+m.v+(done?'':', not finished')+'"><span class="v">'+(m.sev?(m.v?m.v:'–'):m.v)+'</span><span class="pd">'+dots+'</span></button>'}}
-  h+='</div></div><div class="legend">'+legend.map((t,i)=>'<span><i class="l'+i+'"></i>'+esc(t)+'</span>').join('')+'<span>· dots = plants checked · dashed = unfinished'+(sk.size?' · hatched = empty spot, skipped':'')+'</span></div><p class="note" style="margin-top:6px">Empty houses or sections? <button class="linkish" data-act="mapopen" data-k="'+w.zone+'">Mark them on the zone map</button></p>';
+  h+=pressureHtml(w);
   const flags=[];Object.entries(w.cards||{}).forEach(([k,cd])=>Object.entries(cd.p||{}).forEach(([pk,pl])=>{if(pl.s!=='issue')return;PLANT_ITEMS.forEach(i=>{const v=+pl.v?.[i.k]||0;if(itemFound(pl,i.k))flags.push({k,pk,i,v,note:pl.n})})}));
   flags.sort((a,b)=>b.v-a.v);
   h+='<h2>Plant findings</h2>';
@@ -698,6 +728,47 @@ function viewWalk(){
   h+='<div style="margin-top:10px">'+(state.confirmDel?'<div class="confirm"><strong>Delete this walk?</strong><span class="note">All '+cardsTotal(w.zone)+' cards and '+zoneTotal(w.zone)+' plant records for Zone '+w.zone+' on '+esc(fmtDate(w.date))+' are removed for good.</span><div class="row"><button class="btn danger" data-act="delyes">Delete walk</button><button class="btn ghost" data-act="delno">Keep it</button></div></div>':'<button class="btn ghost block" data-act="del" style="color:var(--muted)">Delete walk</button>')+'</div>';
   return h;
 }
+
+/* pest pressure (walk page) */
+function prevWalkOf(w){return Object.values(walks).filter(x=>x&&x.zone===w.zone&&x.date<w.date).sort((a,b)=>b.date.localeCompare(a.date))[0]||null}
+function houseAllSkip(sk,hh){for(let c=1;c<=CARDS;c++)if(!sk.has(key(hh,c)))return false;return true}
+function cardStats(w){const sk=skipSet(w),H=housesFor(w.zone);const tot={},byH={},nH={};let n=0;CARD_ITEMS.forEach(i=>tot[i.k]=0);
+  for(let h=1;h<=H;h++){byH[h]={};nH[h]=0;CARD_ITEMS.forEach(i=>byH[h][i.k]=0);for(let c=1;c<=CARDS;c++){const k=key(h,c);if(sk.has(k))continue;const cd=w.cards?.[k];if(!cd||!cd.ce)continue;n++;nH[h]++;CARD_ITEMS.forEach(i=>{const v=+cd.c?.[i.k]||0;tot[i.k]+=v;byH[h][i.k]+=v})}}
+  return{n,tot,byH,nH}}
+function plantStats(w){const sk=skipSet(w),H=housesFor(w.zone),NP=plantsFor(w.zone);const it={},byH={},nH={},flH={};let n=0;PLANT_ITEMS.forEach(i=>it[i.k]={u:0,l:0,m:0,h:0,t:0});
+  for(let h=1;h<=H;h++){byH[h]={};nH[h]=0;flH[h]=0;for(let c=1;c<=CARDS;c++){const k=key(h,c);if(sk.has(k))continue;const cd=w.cards?.[k];if(!cd)continue;for(let p=1;p<=NP;p++){const pl=cd.p?.['P'+p];if(!plantDone(pl))continue;n++;nH[h]++;if(plantHit(pl))flH[h]++;
+    PLANT_ITEMS.forEach(i=>{if(!itemFound(pl,i.k))return;const v=+((pl.v||{})[i.k])||0;const g=v>=4?'h':v===3?'m':v>=1?'l':'u';it[i.k][g]++;it[i.k].t++;byH[h][i.k]=(byH[h][i.k]||0)+1})}}}
+  return{n,it,byH,nH,flH}}
+function ppNum(v){return v>=10?String(Math.round(v)):String(Math.round(v*10)/10)}
+function houseChips(H,sk,fn,unit){let h='<div class="pp-houses">';for(let hh=1;hh<=H;hh++){const e=houseAllSkip(sk,hh);const v=e?null:fn(hh);h+='<span class="'+(e?'e':'')+'"><b>H'+hh+'</b>'+(e?'empty':v==null?'–':v)+'</span>'}return h+'</div><p class="note pp-unit">'+unit+'</p>'}
+function pressureHtml(w){const cs=cardStats(w),ps=plantStats(w),pw=prevWalkOf(w),pcs=pw?cardStats(pw):null,H=housesFor(w.zone),sk=skipSet(w),open=state.ppOpen,NP=plantsFor(w.zone);
+  let h='<h2>'+leafSvg()+'Pest pressure</h2>';
+  h+='<div class="panel pp"><div class="pp-hd"><b>Sticky cards</b><span class="note">Average caught per card'+(cs.n?' · '+cs.n+' card'+(cs.n===1?'':'s')+' counted':'')+'</span></div>';
+  if(!cs.n)h+='<p class="note" style="margin:4px 0 6px">No card counts entered yet.</p>';
+  else{const pav=k=>pcs&&pcs.n?pcs.tot[k]/pcs.n:null;const rows=CARD_ITEMS.map((i,ix)=>({i,ix,v:cs.tot[i.k]/cs.n,p:pav(i.k)})).sort((a,b)=>(b.v-a.v)||(a.ix-b.ix));
+    const mx=Math.max(...rows.map(r=>Math.max(r.v,r.p||0)))||1;
+    rows.forEach(r=>{const k='c:'+r.i.k,on=open===k;const d=r.p==null?'':r.v>r.p+.05?'↑ from '+ppNum(r.p):r.v<r.p-.05?'↓ from '+ppNum(r.p):'same as last';
+      h+='<button class="pp-row'+(r.v?'':' zero')+'" data-act="ppopen" data-k="'+k+'" aria-expanded="'+on+'" aria-label="'+esc(r.i.n)+': '+ppNum(r.v)+' per card'+(d?', '+d:'')+'"><span class="pp-top"><span class="pp-name">'+esc(r.i.n)+'</span><span class="pp-val"><b>'+ppNum(r.v)+'</b>'+(d?'<small>'+d+'</small>':'')+'</span></span><span class="pp-track"><span class="pp-bar" style="width:'+(r.v/mx*100).toFixed(1)+'%"></span>'+(r.p?'<span class="pp-last" style="left:'+(r.p/mx*100).toFixed(1)+'%"></span>':'')+'</span></button>';
+      if(on)h+=houseChips(H,sk,hh=>cs.nH[hh]?ppNum(cs.byH[hh][r.i.k]/cs.nH[hh]):null,'Average per card in each house')});
+    h+='<p class="pp-key">'+(pcs&&pcs.n?'<i class="pp-lastkey"></i>':'')+'<span>'+(pcs&&pcs.n?'Last walk, '+esc(fmtShort(pw.date))+' · ':'')+'Tap a row to see it by house</span></p>'}
+  h+='</div>';
+  h+='<div class="panel pp"><div class="pp-hd"><b>Plants</b><span class="note">Share of plants with each issue'+(ps.n?' · '+ps.n+' checked':'')+'</span></div>';
+  if(!ps.n)h+='<p class="note" style="margin:4px 0 6px">No plants checked yet.</p>';
+  else{const rows=PLANT_ITEMS.map((i,ix)=>({i,ix,s:ps.it[i.k]})).filter(r=>r.s.t>0).sort((a,b)=>(b.s.t-a.s.t)||(a.ix-b.ix));const pc=x=>x/ps.n*100;
+    if(!rows.length)h+='<p class="note" style="margin:4px 0 6px">No issues found on any plant checked.</p>';
+    const G=[['h','High (4–5)'],['m','Moderate (3)'],['l','Low (1–2)'],['u','Found, not rated']];
+    rows.forEach(r=>{const k='p:'+r.i.k,on=open===k;const br=G.filter(([g])=>r.s[g]).map(([g,n])=>r.s[g]+' '+n.split(' (')[0].toLowerCase()).join(', ');
+      h+='<button class="pp-row" data-act="ppopen" data-k="'+k+'" aria-expanded="'+on+'" aria-label="'+esc(r.i.n)+': '+r.s.t+' of '+ps.n+' plants, '+br+'"><span class="pp-top"><span class="pp-name">'+esc(r.i.n)+'</span><span class="pp-val"><b>'+(pc(r.s.t)<1?'<1':Math.round(pc(r.s.t)))+'%</b><small>'+r.s.t+' of '+ps.n+'</small></span></span><span class="pp-track full">'+G.filter(([g])=>r.s[g]).map(([g,n])=>'<span class="pp-seg '+g+'" style="width:max(3px,calc('+pc(r.s[g]).toFixed(2)+'% - 2px))" title="'+n+': '+r.s[g]+'"></span>').join('')+'</span></button>';
+      if(on)h+='<p class="note pp-unit" style="margin-top:0">'+esc(br.charAt(0).toUpperCase()+br.slice(1))+'</p>'+houseChips(H,sk,hh=>ps.nH[hh]?(ps.byH[hh][r.i.k]||0)+' of '+ps.nH[hh]:null,'Plants with it in each house')});
+    if(rows.length)h+='<div class="pp-legend">'+G.map(([g,n])=>'<span><i class="pp-seg '+g+'"></i>'+n+'</span>').join('')+'</div>'}
+  h+='</div>';
+  const hv=hh=>cs.nH[hh]?CARD_ITEMS.reduce((s,i)=>s+cs.byH[hh][i.k],0)/cs.nH[hh]:0;let hm=0;for(let hh=1;hh<=H;hh++)hm=Math.max(hm,hv(hh));hm=hm||1;
+  h+='<h2>'+leafSvg()+'Houses</h2><div class="panel pp-hl">';
+  for(let hh=1;hh<=H;hh++){if(houseAllSkip(sk,hh)){h+='<div class="hrow e"><b>H'+hh+'</b><span>Empty house, skipped</span></div>';continue}
+    let tot=0,done=0;for(let c=1;c<=CARDS;c++){const k=key(hh,c);if(sk.has(k))continue;tot++;if(cardDone(w.cards?.[k],NP))done++}const fl=ps.flH[hh]||0;
+    h+='<button class="hrow" data-act="hopen" data-k="'+hh+'"><b>H'+hh+'</b><span class="hr-mid"><span class="hr-t">'+done+'/'+tot+' cards done'+(fl?' · '+fl+' plant'+(fl===1?'':'s')+' flagged':'')+'</span><span class="pp-track"><span class="pp-bar" style="width:'+(hv(hh)/hm*100).toFixed(1)+'%"></span></span></span><span class="hr-v">'+(cs.nH[hh]?ppNum(hv(hh)):'–')+'<small>caught/card</small></span><span class="hr-go" aria-hidden="true">›</span></button>'}
+  h+='</div><p class="note" style="margin-top:6px">Tap a house to open its next unfinished card. Empty houses or sections? <button class="linkish" data-act="mapopen" data-k="'+w.zone+'">Mark them on the zone map</button></p>';
+  return h}
 
 function stepper(id,val,act,k){return '<div class="stepper"><button data-act="'+act+'" data-k="'+k+'" data-d="-1" aria-label="Minus one">−</button><input id="'+id+'" type="number" inputmode="numeric" min="0" value="'+val+'" data-inp="count" data-k="'+k+'" aria-label="count"><button data-act="'+act+'" data-k="'+k+'" data-d="1" aria-label="Plus one">+</button></div>'}
 
@@ -725,7 +796,7 @@ function viewCard(){
   {const hN=+state.card.match(/H(\d+)/)[1];h+='<h2>House '+hN+' notes</h2><p class="note" style="margin:-4px 0 8px">Shows on every card in House '+hN+'.</p><textarea id="hn_'+hN+'" data-inp="hnote" data-h="'+hN+'" rows="4" placeholder="Anything you see in House '+hN+': hot spots, predators, drippers, card replaced or missing">'+esc(houseNote(w,hN))+'</textarea>'}
   const next=nextCardKey(state.card);
   const prev=prevCardKey(state.card);
-  h+='<div class="nav"><button class="btn" data-act="prev"'+(prev?' aria-label="Previous card, '+prev+'"':' disabled')+'>‹ '+(prev?cardLbl(state.card,prev):'Prev')+'</button><button class="btn" data-act="walk">Grid</button><button class="btn primary" data-act="next">'+(next?'Next: '+cardLbl(state.card,next)+' ›':'Finish walk')+'</button></div>';
+  h+='<div class="nav three"><button class="btn" data-act="prev"'+(prev?' aria-label="Previous card, '+prev+'"':' disabled')+'>‹ '+(prev?cardLbl(state.card,prev):'Prev')+'</button><button class="btn" data-act="walk">Walk</button><button class="btn primary" data-act="next">'+(next?'Next: '+cardLbl(state.card,next)+' ›':'Finish walk')+'</button></div>';
   return h;
 }
 function cardOrd(k){const [h,c]=k.match(/\d+/g).map(Number);return (h-1)*CARDS+c-1}
@@ -1864,6 +1935,8 @@ document.addEventListener('click',e=>{
     state.walkId=id;syncSkip(id);const nx=firstOpen(walks[id]);if(nx){state.card=nx;go('card')}else go('walk');return}
   if(a==='open'){state.walkId=b.dataset.id;return go('walk')}
   if(a==='card'){state.card=b.dataset.k;return go('card')}
+  if(a==='ppopen'){state.ppOpen=state.ppOpen===b.dataset.k?null:b.dataset.k;return render()}
+  if(a==='hopen'){const hh=+b.dataset.k;const sk=skipSet(w);let t=null,f=null;for(let c=1;c<=CARDS;c++){const k=key(hh,c);if(sk.has(k))continue;if(!f)f=k;if(!t&&!cardDone(w.cards?.[k],plantsFor(w.zone)))t=k}const k=t||f;if(k){state.card=k;go('card')}return}
   if(a==='nextopen'){const nx=firstOpen(w);if(nx){state.card=nx;go('card')}else toast('Every card in this walk is complete.');return}
   if(a==='export')return exportCsv([[state.walkId,w]],'zone'+w.zone+'_'+w.date+'.csv');
   if(a==='exportzone'){const list=Object.entries(walks).filter(([,x])=>x&&x.zone===state.trendZone).sort((p,q)=>p[1].date.localeCompare(q[1].date));return exportCsv(list,'zone'+state.trendZone+'_all_walks.csv')}
@@ -1886,7 +1959,7 @@ document.addEventListener('click',e=>{
   if(a==='sev'){const pl=cd.p[b.dataset.k];pl.v=pl.v||{};pl.v[b.dataset.i]=+b.dataset.v;if(!+b.dataset.v&&pl.f)delete pl.f[b.dataset.i];touch(state.walkId);render();return}
   if(a==='allclean'){let n=0;for(let p=1;p<=plantsFor(w.zone);p++){if(!plantDone(cd.p['P'+p])){cd.p['P'+p]={s:'clean'};n++}}if(n){touch(state.walkId);render()}toast(n?n+' plant'+(n===1?'':'s')+' marked clean':'All plants on this card are already checked');return}
   if(a==='prev'){const pv=prevCardKey(state.card);if(pv){state.card=pv;go('card')}return}
-  if(a==='next'){if(!cardDone(cd)&&!skipSet(w).has(state.card))toast('Card left unfinished. It stays dashed on the grid.');const nx=nextCardKey(state.card);if(nx){state.card=nx;go('card')}else go('walk');return}
+  if(a==='next'){if(!cardDone(cd)&&!skipSet(w).has(state.card))toast('Card left unfinished. It still counts as not done.');const nx=nextCardKey(state.card);if(nx){state.card=nx;go('card')}else go('walk');return}
 });
 function firstOpen(w){const sk=skipSet(w);for(let h=1;h<=housesFor(w.zone);h++)for(let c=1;c<=CARDS;c++)if(!sk.has(key(h,c))&&!cardDone(w.cards?.[key(h,c)],plantsFor(w.zone)))return key(h,c);return null}
 
